@@ -88,6 +88,32 @@
 | 管理者 | `owner@salonlink.demo` | `owner1234` | `/dashboard` |
 | スタッフ | `staff@salonlink.demo` | `staff1234` | `/dashboard` (権限制限) |
 
+## 💳 Stripe 本番モードへの切替
+
+現状 `STRIPE_SECRET_KEY` が未設定の「デモモード」で稼働しており、/register からの新規登録は決済なしで完了します。本番課金に切り替えるには Railway の環境変数に以下を追加し、再デプロイするだけです:
+
+```bash
+railway variables \
+  --set "STRIPE_SECRET_KEY=sk_test_..." \
+  --set "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_..." \
+  --set "STRIPE_WEBHOOK_SECRET=whsec_..."
+railway redeploy
+```
+
+その後 Stripe Dashboard で Webhook エンドポイントを `https://<your-domain>/api/stripe/webhook` に設定し、`checkout.session.completed` イベントを購読してください。
+
+### 知り合いサロンを決済なしで登録する方法
+
+本番モードに切替後でも、知り合いや特別な顧客を決済バイパスで登録できます:
+
+1. SuperAdmin (`super@salonlink.demo`) でログイン
+2. `/superadmin` 画面右上の「**+ 新規店舗を追加(決済スキップ)**」ボタンをクリック
+3. 店舗名・オーナー名・メール・初期パスワード・プランを入力して作成
+4. 作成完了後に表示される認証情報(Email/Password)を相手にお伝えする
+5. 相手は通常の `/login` からログインして利用開始
+
+この方法で作成された店舗は Stripe 決済を経由せず、`status=active` のまま発行されます。通常の `/register` ルートは Stripe 本番モード設定時は必ず決済を要求します。
+
 ## ローカル開発
 
 ```bash
