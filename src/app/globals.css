@@ -131,28 +131,60 @@
 }
 
 :root {
-  --brand: #e11d74;
-  --brand-light: #fdf2f8;
+  --brand: #633f5a;       /* 深い紫 — 和モダン */
+  --brand-ink: #2a1a26;   /* 濃い文字色 */
+  --brand-paper: #fffdfd; /* 暖かい紙色 */
+  --brand-warm: #f5efec;  /* 淡いベージュ */
+  --brand-line: #e8dfd9;  /* 罫線 */
+  --brand-light: #f5efec; /* 既存コード互換 */
+  --brand-button: #1a1a1a;
+}
+
+html, body {
+  font-family: var(--font-zen-maru), -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  background: var(--brand-paper);
+  color: var(--brand-ink);
+  font-feature-settings: "palt";
+  letter-spacing: 0.02em;
 }
 
 .brand-bg { background: var(--brand); }
 .brand-text { color: var(--brand); }
-.brand-light-bg { background: var(--brand-light); }
+.brand-light-bg { background: var(--brand-warm); }
 .brand-border { border-color: var(--brand); }
 
+/* 和モダンボタン: 角丸なし・1pxボーダー・影なし */
 .btn-brand {
-  background: var(--brand);
+  background: var(--brand-button);
   color: white;
-  padding: 8px 16px;
-  border-radius: 8px;
+  padding: 14px 28px;
+  border-radius: 2px;
   font-weight: 500;
-  font-size: 14px;
-  transition: opacity 0.15s;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  transition: opacity 0.2s;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
+  border: 1px solid var(--brand-button);
 }
-.btn-brand:hover { opacity: 0.9; }
+.btn-brand:hover { opacity: 0.85; }
+
+.btn-outline {
+  background: transparent;
+  color: var(--brand-ink);
+  padding: 14px 28px;
+  border-radius: 2px;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  border: 1px solid var(--brand-ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s;
+}
+.btn-outline:hover { background: var(--brand-ink); color: white; }
 
 .btn-ghost {
   padding: 8px 16px;

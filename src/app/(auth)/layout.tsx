@@ -1,23 +1,22 @@
 import Link from 'next/link';
-import { Sparkles } from 'lucide-react';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-pink-50 via-white to-purple-50">
-      <header className="p-6">
-        <Link href="/" className="inline-flex items-center gap-2">
-          <div className="w-9 h-9 rounded-lg brand-bg flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <div className="font-bold text-stone-900">SalonLink</div>
-            <div className="text-[10px] text-stone-500">for Nail Salons</div>
-          </div>
-        </Link>
+    <div className="min-h-screen flex flex-col" style={{ background: '#fffdfd', color: '#2a1a26' }}>
+      <header className="px-6 py-6" style={{ borderBottom: '1px solid #e8dfd9' }}>
+        <div className="max-w-5xl mx-auto">
+          <Link href="/" className="inline-flex items-baseline gap-3">
+            <span className="text-xl font-bold tracking-wide" style={{ color: '#633f5a' }}>SalonLink</span>
+            <span className="text-[10px] tracking-[0.2em] uppercase" style={{ color: '#8a7a82' }}>for Nail Salons</span>
+          </Link>
+        </div>
       </header>
-      <main className="flex-1 flex items-center justify-center px-4 py-8">
+      <main className="flex-1 flex items-center justify-center px-6 py-16">
         {children}
       </main>
+      <footer className="py-6 px-6 text-center text-xs" style={{ color: '#8a7a82', borderTop: '1px solid #e8dfd9' }}>
+        © 2026 SalonLink
+      </footer>
     </div>
   );
 }

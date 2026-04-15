@@ -29,63 +29,73 @@ export default function LoginPage() {
       router.push(data.redirectUrl || '/dashboard');
       router.refresh();
     } catch {
-      setError('通信エラー');
+      setError('通信エラーが発生しました');
       setLoading(false);
     }
   }
 
   return (
     <div className="w-full max-w-md">
-      <div className="card-box">
-        <h1 className="text-2xl font-bold text-stone-900 mb-1">ログイン</h1>
-        <p className="text-sm text-stone-500 mb-6">SalonLink にログインします</p>
+      <div className="text-center mb-10">
+        <p className="text-xs tracking-[0.3em] mb-3" style={{ color: '#633f5a' }}>LOGIN</p>
+        <h1 className="text-2xl font-bold" style={{ color: '#2a1a26' }}>おかえりなさい</h1>
+        <p className="text-sm mt-3" style={{ color: '#8a7a82' }}>SalonLink にログインします</p>
+      </div>
 
+      <div className="bg-white p-10" style={{ border: '1px solid #e8dfd9' }}>
         {error && (
-          <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+          <div className="mb-5 p-3 text-xs leading-relaxed" style={{ background: '#fdf2f2', border: '1px solid #f0c8c8', color: '#8b2b2b' }}>
             {error}
           </div>
         )}
 
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={onSubmit} className="space-y-5">
           <div>
-            <label className="block text-xs font-medium text-stone-700 mb-1">メールアドレス</label>
+            <label className="block text-[10px] tracking-[0.15em] uppercase mb-2" style={{ color: '#8a7a82' }}>メールアドレス</label>
             <input
               type="email"
               required
-              className="input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="owner@example.com"
+              className="w-full px-4 py-3 text-sm bg-transparent focus:outline-none"
+              style={{ border: '1px solid #e8dfd9', color: '#2a1a26' }}
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-stone-700 mb-1">パスワード</label>
+            <label className="block text-[10px] tracking-[0.15em] uppercase mb-2" style={{ color: '#8a7a82' }}>パスワード</label>
             <input
               type="password"
               required
-              className="input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
+              className="w-full px-4 py-3 text-sm bg-transparent focus:outline-none"
+              style={{ border: '1px solid #e8dfd9', color: '#2a1a26' }}
             />
           </div>
-          <button type="submit" disabled={loading} className="btn-brand w-full justify-center py-2.5">
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-4 text-xs tracking-[0.2em] mt-2 disabled:opacity-50"
+            style={{ background: '#1a1a1a', color: 'white' }}
+          >
             {loading ? 'ログイン中...' : 'ログイン'}
           </button>
         </form>
 
-        <div className="mt-6 pt-6 border-t border-stone-100 text-center text-sm text-stone-600">
-          アカウントをお持ちでない方は{' '}
-          <Link href="/register" className="brand-text font-semibold">新規登録</Link>
+        <div className="mt-8 pt-8 text-center text-xs" style={{ borderTop: '1px solid #e8dfd9', color: '#4a3a44' }}>
+          はじめての方はこちらから{' '}
+          <Link href="/register" className="underline underline-offset-4" style={{ color: '#633f5a' }}>新規ご登録</Link>
         </div>
       </div>
 
-      <div className="mt-4 p-4 rounded-lg bg-stone-100 text-xs text-stone-600">
-        <div className="font-semibold mb-2">💡 ロール別ログイン</div>
-        <ul className="space-y-1">
-          <li>・<b>管理者（店舗オーナー）</b>: 全機能にアクセス可</li>
-          <li>・<b>スタッフ</b>: 予約・顧客・カルテ・メニューのみ</li>
-          <li>・<b>SaaS運営者</b>: /superadmin で全店舗を管理</li>
+      <div className="mt-8 p-6 text-xs leading-[2.0]" style={{ background: '#f5efec', color: '#4a3a44' }}>
+        <div className="font-bold mb-3 text-[10px] tracking-[0.15em] uppercase" style={{ color: '#633f5a' }}>ロール別ログイン</div>
+        <ul className="space-y-1.5">
+          <li>・管理者(店舗オーナー)は全機能をご利用いただけます</li>
+          <li>・スタッフは予約・顧客・カルテ・メニューのみ</li>
+          <li>・SaaS 運営者は /superadmin で全店舗を管理</li>
         </ul>
       </div>
     </div>
