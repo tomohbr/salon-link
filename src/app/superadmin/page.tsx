@@ -4,6 +4,7 @@ import { yen, fmtDate } from '@/lib/utils/format';
 import { Sparkles, Building2, Users, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import SuperAdminClient from './SuperAdminClient';
 
 export default async function SuperAdminPage() {
   try {
@@ -41,12 +42,17 @@ export default async function SuperAdminPage() {
               <div className="text-[10px] text-stone-500">SaaS運営管理画面</div>
             </div>
           </div>
-          <Link href="/api/auth/logout" className="btn-ghost text-sm">ログアウト</Link>
+          <form action="/api/auth/logout" method="POST">
+            <button type="submit" className="btn-ghost text-sm">ログアウト</button>
+          </form>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto p-6 space-y-6">
-        <h1 className="text-2xl font-bold text-stone-900">全店舗管理</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-stone-900">全店舗管理</h1>
+          <SuperAdminClient />
+        </div>
 
         {/* KPI */}
         <div className="grid grid-cols-4 gap-4">

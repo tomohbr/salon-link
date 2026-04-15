@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import Slideshow from './_components/Slideshow';
+import { getSession } from '@/lib/auth';
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const session = await getSession();
   return (
     <div className="min-h-screen" style={{ background: '#fffdfd', color: '#2a1a26' }}>
       {/* ─────────── Header ─────────── */}
@@ -16,13 +18,24 @@ export default function LandingPage() {
             <Link href="#about" className="hover:opacity-60 transition-opacity" style={{ color: '#2a1a26' }}>サービスについて</Link>
             <Link href="#features" className="hover:opacity-60 transition-opacity" style={{ color: '#2a1a26' }}>できること</Link>
             <Link href="#pricing" className="hover:opacity-60 transition-opacity" style={{ color: '#2a1a26' }}>料金</Link>
-            <Link href="/login" className="hover:opacity-60 transition-opacity" style={{ color: '#2a1a26' }}>ログイン</Link>
-            <Link href="/register" className="px-5 py-2.5 text-xs tracking-[0.15em]" style={{ background: '#1a1a1a', color: 'white' }}>
-              新規ご登録
-            </Link>
+            {session ? (
+              <>
+                <span className="text-xs" style={{ color: '#8a7a82' }}>{session.name} 様</span>
+                <Link href={session.role === 'superadmin' ? '/superadmin' : '/dashboard'} className="px-5 py-2.5 text-xs tracking-[0.15em]" style={{ background: '#1a1a1a', color: 'white' }}>
+                  ダッシュボードへ
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/login" className="hover:opacity-60 transition-opacity" style={{ color: '#2a1a26' }}>ログイン</Link>
+                <Link href="/register" className="px-5 py-2.5 text-xs tracking-[0.15em]" style={{ background: '#1a1a1a', color: 'white' }}>
+                  新規ご登録
+                </Link>
+              </>
+            )}
           </nav>
-          <Link href="/register" className="md:hidden px-4 py-2 text-[11px] tracking-[0.1em]" style={{ background: '#1a1a1a', color: 'white' }}>
-            ご登録
+          <Link href={session ? (session.role === 'superadmin' ? '/superadmin' : '/dashboard') : '/register'} className="md:hidden px-4 py-2 text-[11px] tracking-[0.1em]" style={{ background: '#1a1a1a', color: 'white' }}>
+            {session ? 'ダッシュボード' : 'ご登録'}
           </Link>
         </div>
       </header>

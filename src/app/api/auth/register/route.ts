@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { hashPassword } from '@/lib/auth';
+import { hashPassword, createSession } from '@/lib/auth';
 import { createCheckoutSession, isDemoMode, type PlanId } from '@/lib/stripe';
 
 // 新規登録 API
@@ -53,20 +53,29 @@ export async function POST(req: NextRequest) {
           },
         },
       },
+      include: { users: true },
     });
 
     const origin = req.nextUrl.origin;
 
     if (isDemoMode) {
-      // デモモード: 決済をスキップして直接 active 化
+      // デモモード: 決済をスキップして直接 active 化し、自動ログインさせる
       await prisma.salon.update({
         where: { id: salon.id },
         data: { status: 'active' },
       });
+      const user = salon.users[0];
+      await createSession({
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+        role: 'admin',
+        salonId: salon.id,
+      });
       return NextResponse.json({
         ok: true,
         mode: 'demo',
-        redirectUrl: `/register/success?salon=${salon.id}&demo=1`,
+        redirectUrl: `/dashboard`,
       });
     }
 
