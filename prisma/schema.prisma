@@ -36,6 +36,7 @@ model Salon {
   description         String?
   plan                String    @default("light") // free | light | standard
   status              String    @default("pending_payment") // pending_payment | active | suspended
+  businessHours       Json      @default("{}")
   stripeCustomerId    String?
   stripeSessionId     String?
   lineChannelId       String?
