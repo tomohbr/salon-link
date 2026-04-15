@@ -1,36 +1,128 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SalonLink — ネイルサロン向け顧客囲い込みSaaS
 
-## Getting Started
+ホットペッパービューティー依存から脱却し、自社集客 × LINE連携で顧客をリピーター化するためのSaaSアプリケーション。
+月額 **¥3,980** の業界最安クラス。
 
-First, run the development server:
+## 実装済み機能
+
+### 🔐 認証（3ロール）
+- **SuperAdmin（SaaS運営者）**: 全店舗を管理する `/superadmin` 画面
+- **Admin（店舗オーナー）**: 全機能アクセス可（ダッシュボード / 予約 / 顧客 / メニュー / クーポン / 配信 / デザイン / 分析 / 設定）
+- **Staff（スタッフ）**: 予約 / 顧客 / カルテ / メニュー のみアクセス可
+- JWT (jose) + bcrypt + HttpOnly Cookie セッション
+
+### 💳 登録フロー（決済ゲート）
+1. `/register` で店舗名・オーナー名・メール・パスワード・プラン選択
+2. Stripe Checkout にリダイレクト（月額サブスクリプション）
+3. 決済完了後、Webhook 経由で Salon が `active` 化
+4. `/login` からログイン可能
+
+※ Stripe キー未設定時は "demo mode" で動作し、決済をスキップして即 active 化
+
+### 💾 データ永続化
+- **PostgreSQL** (Railway managed) + **Prisma ORM**
+- 全データが DB に保存されるため、コードを更新・再デプロイしてもデータは残存
+- スキーマ更新は `prisma db push` で反映（破壊的変更時のみ migration 推奨）
+
+### 🎯 差別化機能
+- **HPB→自社移行率の可視化** — 他社にない独自KPI
+- **セグメント別LINE配信** — 休眠・VIP・初回来店者など
+- **デザインギャラリー** — ネイリー型のビジュアル訴求を管理SaaSに統合
+- **離反リスクアラート** — 90日以上来店なしのLINE友だちを自動検知
+
+## 🚀 Railway へのデプロイ
+
+### 前提
+- GitHub アカウント（リポジトリ作成済み）
+- Railway アカウント（無料枠で開始可）
+- （任意）Stripe テストキー
+
+### 手順
+
+1. **GitHub にプッシュ** (既に完了している場合はスキップ)
+   ```bash
+   cd salon-link
+   git init
+   git add .
+   git commit -m "Initial commit"
+   git remote add origin https://github.com/<your-user>/salon-link.git
+   git push -u origin main
+   ```
+
+2. **Railway プロジェクト作成**
+   - https://railway.com/new にアクセス
+   - "Deploy from GitHub repo" を選択し、`salon-link` を選ぶ
+   - Nixpacks が自動検出される（`nixpacks.toml` 同梱）
+
+3. **PostgreSQL を追加**
+   - Railway プロジェクト画面で "+ New" → "Database" → "PostgreSQL"
+   - 追加するだけで `DATABASE_URL` が自動的に Next.js サービスに注入される
+
+4. **環境変数を設定**（Variables タブ）
+   ```
+   DATABASE_URL               = (自動注入)
+   SESSION_SECRET             = <openssl rand -base64 32 で生成>
+   NEXT_PUBLIC_APP_URL        = https://<your-app>.up.railway.app
+   # 以下は任意（Stripe 実決済時のみ）
+   STRIPE_SECRET_KEY          = sk_test_...
+   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = pk_test_...
+   STRIPE_WEBHOOK_SECRET      = whsec_...
+   # LINE（任意）
+   LINE_CHANNEL_SECRET        = ...
+   LINE_CHANNEL_ACCESS_TOKEN  = ...
+   ```
+
+5. **デプロイ**
+   - Railway が自動で `npm run build` → `prisma db push` → `seed.ts` → `npm start` を実行
+   - 初回のみ SuperAdmin・デモサロン・100ペルソナが自動投入される
+
+6. **ドメイン生成**
+   - Settings → Networking → "Generate Domain" をクリック
+   - `https://<your-app>.up.railway.app` が払い出される
+
+### 初期ログイン情報（seed 実行後）
+
+| ロール | メール | パスワード | 画面 |
+|---|---|---|---|
+| SuperAdmin | `super@salonlink.demo` | `super1234` | `/superadmin` |
+| 管理者 | `owner@salonlink.demo` | `owner1234` | `/dashboard` |
+| スタッフ | `staff@salonlink.demo` | `staff1234` | `/dashboard` (権限制限) |
+
+## ローカル開発
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# 1. Postgres を起動 (Docker等)
+docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres --name salonlink-pg postgres:16
+
+# 2. .env を作成
+cp .env.example .env
+
+# 3. DB スキーマ投入とシード
+npx prisma db push
+npm run db:seed
+
+# 4. 開発サーバー
+npm run dev  # → http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 技術スタック
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| レイヤー | 技術 |
+|---|---|
+| Framework | Next.js 16 (App Router) + React 19 |
+| Styling | Tailwind CSS v4 + shadcn/ui |
+| Database | PostgreSQL (Railway) + Prisma 6 |
+| Auth | jose (JWT) + bcryptjs |
+| Payment | Stripe Checkout (subscription) |
+| LINE | @line/bot-sdk + Messaging API |
+| Deploy | Railway (Nixpacks) |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 料金プラン
 
-## Learn More
+| プラン | 料金 | 対象 |
+|---|---|---|
+| Free | ¥0 | 顧客30名・月予約50件まで |
+| **Light** | **¥3,980/月** | 顧客300名・予約無制限・LINE連携・クーポン・分析 |
+| Standard | ¥7,980/月 | 顧客無制限・AI分析・デザインギャラリー |
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+競合（リピッテ ¥8,800・RE:RE ¥9,800・リザービア ¥21,000）より **¥5,000〜¥17,000/月 安価**。

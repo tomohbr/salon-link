@@ -1,0 +1,224 @@
+// SalonLink - Prisma Schema
+// PostgreSQL (Railway managed)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ユーザー (3ロール: superadmin / admin / staff)
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  role          String    // "superadmin" | "admin" | "staff"
+  salonId       String?
+  salon         Salon?    @relation("SalonUsers", fields: [salonId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([salonId])
+}
+
+// 店舗
+model Salon {
+  id                  String    @id @default(cuid())
+  slug                String    @unique
+  name                String
+  ownerEmail          String
+  address             String?
+  phone               String?
+  description         String?
+  plan                String    @default("light") // free | light | standard
+  status              String    @default("pending_payment") // pending_payment | active | suspended
+  stripeCustomerId    String?
+  stripeSessionId     String?
+  lineChannelId       String?
+  lineChannelSecret   String?
+  lineAccessToken     String?
+  lineLiffId          String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  users               User[]        @relation("SalonUsers")
+  staff               Staff[]
+  customers           Customer[]
+  menus               Menu[]
+  reservations        Reservation[]
+  treatments          TreatmentRecord[]
+  coupons             Coupon[]
+  messages            Message[]
+  designs             NailDesign[]
+}
+
+model Staff {
+  id        String   @id @default(cuid())
+  salonId   String
+  salon     Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  name      String
+  role      String   @default("staff")
+  email     String?
+  bio       String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  reservations Reservation[]
+  treatments   TreatmentRecord[]
+  designs      NailDesign[]
+
+  @@index([salonId])
+}
+
+model Customer {
+  id             String   @id @default(cuid())
+  salonId        String
+  salon          Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  name           String
+  nameKana       String?
+  phone          String?
+  email          String?
+  birthday       String?
+  gender         String?
+  lineUserId     String?
+  source         String   @default("other")
+  firstVisitDate String?
+  lastVisitDate  String?
+  visitCount     Int      @default(0)
+  totalSpent     Int      @default(0)
+  tags           String[] @default([])
+  notes          String?
+  isLineFriend   Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  reservations Reservation[]
+  treatments   TreatmentRecord[]
+
+  @@index([salonId])
+  @@index([lineUserId])
+}
+
+model Menu {
+  id              String   @id @default(cuid())
+  salonId         String
+  salon           Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  name            String
+  category        String   @default("その他")
+  price           Int
+  durationMinutes Int      @default(60)
+  description     String?
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  reservations Reservation[]
+
+  @@index([salonId])
+}
+
+model Reservation {
+  id           String   @id @default(cuid())
+  salonId      String
+  salon        Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  customerId   String?
+  customer     Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  staffId      String?
+  staff        Staff?   @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  menuId       String?
+  menu         Menu?    @relation(fields: [menuId], references: [id], onDelete: SetNull)
+  menuName     String?
+  menuPrice    Int?
+  date         String
+  startTime    String
+  endTime      String
+  status       String   @default("confirmed")
+  source       String   @default("web")
+  notes        String?
+  reminderSent Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  treatments TreatmentRecord[]
+
+  @@index([salonId, date])
+  @@index([customerId])
+}
+
+model TreatmentRecord {
+  id              String   @id @default(cuid())
+  salonId         String
+  salon           Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  customerId      String
+  customer        Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  staffId         String?
+  staff           Staff?   @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  reservationId   String?
+  reservation     Reservation? @relation(fields: [reservationId], references: [id], onDelete: SetNull)
+  date            String
+  menuName        String
+  totalPrice      Int      @default(0)
+  durationMinutes Int      @default(60)
+  photos          String[] @default([])
+  notes           String?
+  satisfactionScore Int?
+  createdAt       DateTime @default(now())
+
+  @@index([customerId])
+}
+
+model Coupon {
+  id             String   @id @default(cuid())
+  salonId        String
+  salon          Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  title          String
+  description    String?
+  discountType   String   @default("percent")
+  discountValue  Int
+  minPurchase    Int      @default(0)
+  validFrom      String?
+  validUntil     String?
+  maxUses        Int?
+  usedCount      Int      @default(0)
+  targetSegment  String   @default("all")
+  code           String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+}
+
+model Message {
+  id            String    @id @default(cuid())
+  salonId       String
+  salon         Salon     @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  type          String    @default("broadcast")
+  title         String
+  content       String
+  targetSegment String    @default("all")
+  sentCount     Int       @default(0)
+  openedCount   Int       @default(0)
+  clickedCount  Int       @default(0)
+  status        String    @default("draft")
+  scheduledAt   DateTime?
+  sentAt        DateTime?
+  createdAt     DateTime  @default(now())
+}
+
+model NailDesign {
+  id          String   @id @default(cuid())
+  salonId     String
+  salon       Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  staffId     String?
+  staff       Staff?   @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  title       String
+  category    String?
+  photoUrl    String?
+  tags        String[] @default([])
+  likesCount  Int      @default(0)
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
