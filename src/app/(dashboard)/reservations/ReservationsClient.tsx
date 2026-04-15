@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, X, ChevronLeft, ChevronRight, Copy } from 'lucide-react';
+import { Plus, X, ChevronLeft, ChevronRight, Copy, Upload, FileSpreadsheet } from 'lucide-react';
 
 type DayData = {
   date: string;
@@ -50,6 +50,10 @@ export default function ReservationsClient({
 }) {
   const router = useRouter();
   const [showAdd, setShowAdd] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+  const [csvText, setCsvText] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ created: number; duplicates: number; conflicts: number; errors: number; unparseable: number } | null>(null);
   const [addSource, setAddSource] = useState<'hotpepper' | 'manual' | 'phone'>('hotpepper');
   const [addMenu, setAddMenu] = useState(menus[0]?.id || '');
   const [addDate, setAddDate] = useState(week[0]?.date || '');
@@ -98,6 +102,43 @@ export default function ReservationsClient({
     }
   }
 
+  async function handleFileUpload(file: File) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      setCsvText(text);
+    };
+    // SalonBoardのCSVはShift-JISで出力されるため、デコード試行
+    try {
+      reader.readAsText(file, 'Shift_JIS');
+    } catch {
+      reader.readAsText(file, 'UTF-8');
+    }
+  }
+
+  async function submitImport() {
+    setImporting(true);
+    setImportResult(null);
+    try {
+      const res = await fetch('/api/reservations/import-hpb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ csv: csvText }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || '取込に失敗しました');
+        return;
+      }
+      setImportResult(data.summary);
+      router.refresh();
+    } catch {
+      alert('通信エラー');
+    } finally {
+      setImporting(false);
+    }
+  }
+
   function copyBookUrl(source: string) {
     const url = `${window.location.origin}/book/${salonSlug}${source ? `?source=${source}` : ''}`;
     navigator.clipboard.writeText(url);
@@ -125,8 +166,11 @@ export default function ReservationsClient({
                 <button onClick={() => copyBookUrl('line')} className="w-full text-left px-3 py-2 text-xs hover:bg-stone-50">💬 LINE用予約URL (LIFF)</button>
               </div>
             </div>
+            <button onClick={() => setShowImport(true)} className="btn-ghost text-xs border border-amber-300 bg-amber-50 text-amber-900">
+              <FileSpreadsheet className="w-3 h-3" />HPB CSV取込
+            </button>
             <button onClick={() => setShowAdd(true)} className="btn-brand text-xs">
-              <Plus className="w-3 h-3" />予約を追加 (HPB/電話)
+              <Plus className="w-3 h-3" />予約を追加
             </button>
           </div>
         </div>
@@ -201,6 +245,91 @@ export default function ReservationsClient({
         </div>
       </div>
 
+      {/* HPB CSV取込モーダル */}
+      {showImport && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setShowImport(false)}>
+          <div className="bg-white rounded-xl p-6 max-w-xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <FileSpreadsheet className="w-5 h-5 text-amber-600" />HPB予約をCSV取込
+              </h2>
+              <button onClick={() => { setShowImport(false); setImportResult(null); setCsvText(''); }}><X className="w-5 h-5 text-stone-400" /></button>
+            </div>
+
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-stone-700 space-y-2">
+              <p className="font-semibold text-amber-900">📋 取込手順</p>
+              <ol className="list-decimal list-inside space-y-1 ml-1">
+                <li>SalonBoardにログイン</li>
+                <li>「予約管理」→「CSVダウンロード」でCSV出力</li>
+                <li>下のフォームからCSVファイルをアップロード</li>
+              </ol>
+              <p className="text-stone-500">
+                ※ 同じ日時・顧客名の予約は自動的に重複としてスキップされます<br />
+                ※ ホットペッパーAPIは非公開のため、CSV取込が最も安全な業界標準方式です
+              </p>
+            </div>
+
+            {!importResult ? (
+              <>
+                <div className="mb-3">
+                  <label className="block text-xs font-medium text-stone-700 mb-1">CSVファイルを選択</label>
+                  <input
+                    type="file"
+                    accept=".csv,.txt"
+                    onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
+                    className="input"
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="block text-xs font-medium text-stone-700 mb-1">
+                    またはCSVテキストを直接貼り付け
+                  </label>
+                  <textarea
+                    className="input font-mono text-xs"
+                    rows={6}
+                    value={csvText}
+                    onChange={(e) => setCsvText(e.target.value)}
+                    placeholder={`日付,時間,顧客名,電話番号,メニュー,金額\n2026/04/20,14:00,山田花子,090-1234-5678,ワンカラージェル,5500\n2026/04/20,16:30,佐藤結衣,090-2345-6789,フレンチネイル,6600`}
+                  />
+                  <div className="text-[10px] text-stone-500 mt-1">
+                    対応カラム: 日付 / 時間 / 顧客名 / 電話番号 / メニュー / 金額（順不同・別名OK）
+                  </div>
+                </div>
+
+                <button
+                  onClick={submitImport}
+                  disabled={!csvText || importing}
+                  className="w-full btn-brand justify-center py-2.5"
+                >
+                  <Upload className="w-4 h-4" />
+                  {importing ? '取込中...' : 'CSVを取込'}
+                </button>
+              </>
+            ) : (
+              <div className="space-y-3">
+                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg text-center">
+                  <div className="text-2xl">✅</div>
+                  <div className="text-sm font-bold text-emerald-900 mt-1">取込完了</div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <ResultStat label="新規作成" value={importResult.created} color="emerald" />
+                  <ResultStat label="重複スキップ" value={importResult.duplicates} color="gray" />
+                  <ResultStat label="枠競合" value={importResult.conflicts} color="amber" />
+                  <ResultStat label="パースエラー" value={importResult.unparseable + importResult.errors} color="red" />
+                </div>
+                <button
+                  onClick={() => { setShowImport(false); setImportResult(null); setCsvText(''); }}
+                  className="w-full btn-ghost border border-stone-300 justify-center py-2"
+                >
+                  閉じる
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* 予約追加モーダル */}
       {showAdd && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setShowAdd(false)}>
@@ -263,6 +392,21 @@ export default function ReservationsClient({
         </div>
       )}
     </>
+  );
+}
+
+function ResultStat({ label, value, color }: { label: string; value: number; color: string }) {
+  const colors: Record<string, string> = {
+    emerald: 'bg-emerald-50 text-emerald-900 border-emerald-200',
+    gray: 'bg-stone-50 text-stone-700 border-stone-200',
+    amber: 'bg-amber-50 text-amber-900 border-amber-200',
+    red: 'bg-red-50 text-red-900 border-red-200',
+  };
+  return (
+    <div className={`p-3 rounded-lg border ${colors[color] || colors.gray}`}>
+      <div className="text-xs">{label}</div>
+      <div className="text-xl font-bold mt-1">{value}<span className="text-xs font-normal ml-1">件</span></div>
+    </div>
   );
 }
 
