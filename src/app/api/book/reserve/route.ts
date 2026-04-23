@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getAvailableSlots } from '@/lib/availability';
+import { buildAccessUrl } from '@/lib/bookingAccess';
 
 export async function POST(req: NextRequest) {
   try {
@@ -81,6 +82,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    const origin = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+    const accessUrl = buildAccessUrl(origin, reservation.id);
+
     return NextResponse.json({
       ok: true,
       reservation: {
@@ -90,6 +94,7 @@ export async function POST(req: NextRequest) {
         endTime,
         menuName: menu.name,
         menuPrice: menu.price,
+        accessUrl,
       },
     });
   } catch (err) {

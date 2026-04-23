@@ -36,7 +36,7 @@ export default function BookingFlow({
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [result, setResult] = useState<{ date: string; startTime: string; endTime: string; menuName: string; menuPrice: number } | null>(null);
+  const [result, setResult] = useState<{ id?: string; date: string; startTime: string; endTime: string; menuName: string; menuPrice: number; accessUrl?: string } | null>(null);
 
   // 空き枠取得
   useEffect(() => {
@@ -93,6 +93,7 @@ export default function BookingFlow({
       }
       setResult(data.reservation);
       setStep('done');
+      if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch {
       setError('通信エラー');
       setSubmitting(false);
@@ -345,6 +346,38 @@ export default function BookingFlow({
                 <div className="flex justify-between"><span className="text-stone-500">お支払い</span><span className="font-medium">{yen(result.menuPrice)}</span></div>
               </div>
             </div>
+            {result.accessUrl && (
+              <div className="mt-4 p-4 brand-light-bg border rounded-lg" style={{ borderColor: '#e8dfd9' }}>
+                <div className="text-xs font-bold mb-2 flex items-center gap-1.5" style={{ color: '#633f5a' }}>
+                  🔖 ご予約確認 URL
+                </div>
+                <p className="text-[11px] leading-[1.8] mb-3" style={{ color: '#4a3a44' }}>
+                  下の URL からご予約内容の確認・キャンセルができます。<br />
+                  ブックマーク保存をおすすめします。
+                </p>
+                <a
+                  href={result.accessUrl}
+                  target="_blank"
+                  rel="noopener"
+                  className="block p-2.5 bg-white text-[11px] rounded font-mono break-all hover:opacity-70"
+                  style={{ color: '#633f5a', border: '1px solid #e8dfd9' }}
+                >
+                  {result.accessUrl}
+                </a>
+                <div className="flex gap-2 mt-3">
+                  <a href={result.accessUrl} className="flex-1 text-center py-2 text-xs tracking-wider font-bold" style={{ background: '#1a1a1a', color: 'white', borderRadius: '4px' }}>
+                    ご予約を確認
+                  </a>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(result.accessUrl || ''); }}
+                    className="flex-1 py-2 text-xs tracking-wider font-bold"
+                    style={{ border: '1px solid var(--gray-700)', color: 'var(--gray-700)', borderRadius: '4px' }}
+                  >
+                    URL をコピー
+                  </button>
+                </div>
+              </div>
+            )}
             <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg text-xs text-stone-700">
               💬 LINE友だち追加で、リマインド通知や次回クーポンをお届けします
             </div>
