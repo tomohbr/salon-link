@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { hashPassword, createSession } from '@/lib/auth';
 import { createCheckoutSession, isDemoMode, type PlanId } from '@/lib/stripe';
+import { rateLimit, getClientIp } from '@/lib/rateLimit';
+import { logAudit } from '@/lib/audit';
 
 // 新規登録 API
 // 1. Salon を status=pending_payment で作成
@@ -18,6 +20,10 @@ function slugify(s: string) {
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req.headers);
+    const rl = rateLimit({ key: `register:${ip}`, limit: 5, windowSec: 60 * 60 });
+    if (!rl.ok) return NextResponse.json({ error: rl.message }, { status: 429 });
+
     const { salonName, email, password, name, plan } = await req.json();
     if (!salonName || !email || !password || !name) {
       return NextResponse.json({ error: '必須項目が不足しています' }, { status: 400 });
@@ -72,6 +78,8 @@ export async function POST(req: NextRequest) {
         role: 'admin',
         salonId: salon.id,
       });
+      logAudit({ action: 'auth.register', entityType: 'salon', entityId: salon.id, after: { mode: 'demo' } }, req.headers);
+
       return NextResponse.json({
         ok: true,
         mode: 'demo',

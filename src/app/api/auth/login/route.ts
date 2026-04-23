@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyPassword, createSession, type Role } from '@/lib/auth';
+import { rateLimit, getClientIp } from '@/lib/rateLimit';
+import { logAudit } from '@/lib/audit';
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req.headers);
+    const rl = rateLimit({ key: `login:${ip}`, limit: 10, windowSec: 60 });
+    if (!rl.ok) return NextResponse.json({ error: rl.message }, { status: 429 });
+
     const { email, password } = await req.json();
     if (!email || !password) {
       return NextResponse.json({ error: 'メールアドレスとパスワードを入力してください' }, { status: 400 });
@@ -46,6 +52,8 @@ export async function POST(req: NextRequest) {
       role: user.role as Role,
       salonId: user.salonId,
     });
+
+    logAudit({ action: 'auth.login', entityType: 'user', entityId: user.id }, req.headers);
 
     return NextResponse.json({
       ok: true,
