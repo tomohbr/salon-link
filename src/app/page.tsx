@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import RoiCalculator from './_lp/RoiCalculator';
 import StickyMobileCta from './_lp/StickyMobileCta';
+import Reveal from './_lp/Reveal';
+import CountUp from './_lp/CountUp';
 
 export const metadata = {
   title: 'SalonLink — 個人ネイルサロンのための、自社集客サービス',
@@ -116,16 +118,16 @@ function TrustBar() {
 function Hero() {
   return (
     <section className="relative overflow-hidden" style={{ background: 'var(--gray-0)' }}>
-      {/* 背景の淡い装飾 */}
+      {/* 背景の淡い装飾 - ゆったり息遣い */}
       <div
         aria-hidden
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 pointer-events-none lp-breathe"
         style={{
-          background: 'radial-gradient(circle at 80% 20%, rgba(201,169,110,0.08) 0%, transparent 50%), radial-gradient(circle at 10% 80%, rgba(99,63,90,0.06) 0%, transparent 50%)',
+          background: 'radial-gradient(circle at 80% 20%, rgba(201,169,110,0.10) 0%, transparent 50%), radial-gradient(circle at 10% 80%, rgba(99,63,90,0.08) 0%, transparent 50%)',
         }}
       />
       <div className="relative max-w-6xl mx-auto px-5 md:px-6 py-24 md:py-36 grid md:grid-cols-[1.1fr_1fr] gap-12 items-center">
-        <div>
+        <Reveal direction="up">
           <p className="text-[10px] md:text-xs tracking-[0.3em] mb-6 font-bold" style={{ color: 'var(--brand)' }}>
             NAIL SALON × LINE × 自社HP
           </p>
@@ -138,24 +140,24 @@ function Hero() {
             ずっと通ってくださるお客さまへ。予約・カルテ・配信を、ひとつの場所に。
           </p>
 
-          {/* 3柱スタッツ */}
+          {/* 3柱スタッツ (カウントアップ) */}
           <div className="grid grid-cols-3 gap-4 md:gap-6 mb-10">
-            <Stat label="初期費用" value="¥0" />
-            <Stat label="導入時間" value="30分" />
-            <Stat label="月額" value="¥4,980〜" />
+            <HeroStat label="初期費用" prefix="¥" to={0} />
+            <HeroStat label="導入時間" to={30} suffix="分" />
+            <HeroStat label="月額" prefix="¥" to={4980} suffix="〜" />
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
               href="/register"
-              className="px-8 py-4 text-xs tracking-[0.2em] font-bold text-center"
+              className="px-8 py-4 text-xs tracking-[0.2em] font-bold text-center transition-all hover:-translate-y-0.5 hover:shadow-lg"
               style={{ background: 'var(--gray-900)', color: 'white', borderRadius: 'var(--r-md)' }}
             >
               無料ではじめる
             </Link>
             <Link
               href="#tour"
-              className="px-8 py-4 text-xs tracking-[0.2em] font-bold text-center"
+              className="px-8 py-4 text-xs tracking-[0.2em] font-bold text-center transition-all hover:bg-gray-900 hover:text-white"
               style={{ color: 'var(--gray-900)', border: '1px solid var(--gray-900)', borderRadius: 'var(--r-md)' }}
             >
               デモを見る <ChevronRight className="inline w-3 h-3" />
@@ -164,33 +166,43 @@ function Hero() {
           <p className="mt-6 text-[11px]" style={{ color: 'var(--gray-500)' }}>
             クレジットカード不要。いつでも解約できます。
           </p>
-        </div>
+        </Reveal>
 
         {/* 右側: ヒーロー写真 */}
-        <div className="relative">
-          <div className="relative aspect-[4/5] overflow-hidden" style={{ borderRadius: 'var(--r-lg)', boxShadow: 'var(--elev-4)' }}>
-            <Image src="/images/lp/hero-main.jpg" alt="ネイルの施術イメージ" fill priority sizes="(max-width:768px) 100vw, 50vw" className="object-cover" />
+        <Reveal direction="left" delayMs={150}>
+          <div className="relative">
+            <div className="relative aspect-[4/5] overflow-hidden lp-image-zoom" style={{ borderRadius: 'var(--r-lg)', boxShadow: 'var(--elev-4)' }}>
+              <Image src="/images/lp/hero-main.jpg" alt="ネイルの施術イメージ" fill priority sizes="(max-width:768px) 100vw, 50vw" className="object-cover" />
+            </div>
+            {/* フロートカード (UI モック風、カウントアップ付き) */}
+            <Reveal direction="up" delayMs={800}>
+              <div
+                className="absolute -bottom-6 -left-6 p-4 hidden md:block"
+                style={{ background: 'white', boxShadow: 'var(--elev-3)', borderRadius: 'var(--r-md)', border: '1px solid var(--gray-200)' }}
+              >
+                <div className="text-[10px] tracking-wider" style={{ color: 'var(--gray-500)' }}>今月の売上</div>
+                <div className="text-2xl font-bold tabular" style={{ color: 'var(--gray-900)' }}>
+                  <CountUp to={842500} prefix="¥" durationMs={1600} />
+                </div>
+                <div className="text-[10px] font-bold tabular mt-1" style={{ color: 'var(--color-success)' }}>
+                  +<CountUp to={12.4} decimals={1} durationMs={1600} />% vs 前月
+                </div>
+              </div>
+            </Reveal>
           </div>
-          {/* フロートカード (UI モック風) */}
-          <div
-            className="absolute -bottom-6 -left-6 p-4 hidden md:block"
-            style={{ background: 'white', boxShadow: 'var(--elev-3)', borderRadius: 'var(--r-md)', border: '1px solid var(--gray-200)' }}
-          >
-            <div className="text-[10px] tracking-wider" style={{ color: 'var(--gray-500)' }}>今月の売上</div>
-            <div className="text-2xl font-bold tabular" style={{ color: 'var(--gray-900)' }}>¥842,500</div>
-            <div className="text-[10px] font-bold tabular mt-1" style={{ color: 'var(--color-success)' }}>+12.4% vs 前月</div>
-          </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function HeroStat({ label, to, prefix, suffix }: { label: string; to: number; prefix?: string; suffix?: string }) {
   return (
     <div>
       <div className="text-[10px] tracking-[0.15em] uppercase mb-1" style={{ color: 'var(--gray-500)' }}>{label}</div>
-      <div className="text-xl md:text-2xl font-bold tabular" style={{ color: 'var(--gray-900)' }}>{value}</div>
+      <div className="text-xl md:text-2xl font-bold tabular" style={{ color: 'var(--gray-900)' }}>
+        <CountUp to={to} prefix={prefix} suffix={suffix} durationMs={1400} />
+      </div>
     </div>
   );
 }
@@ -225,13 +237,13 @@ function About() {
   return (
     <section className="py-24 md:py-32">
       <div className="max-w-3xl mx-auto px-5 md:px-6">
-        <div className="text-center mb-14">
+        <Reveal className="text-center mb-14">
           <p className="text-xs tracking-[0.3em] mb-4 font-bold" style={{ color: 'var(--brand)' }}>ABOUT</p>
           <h2 className="text-2xl md:text-4xl font-bold leading-[1.6]" style={{ color: 'var(--gray-900)' }}>
             技術だけでは、<br className="md:hidden" />店は回らない。
           </h2>
-        </div>
-        <div className="space-y-7 text-sm md:text-base leading-[2.1]" style={{ color: 'var(--gray-700)' }}>
+        </Reveal>
+        <Reveal delayMs={120} className="space-y-7 text-sm md:text-base leading-[2.1]" style={{ color: 'var(--gray-700)' }}>
           <p>
             個人ネイルサロンのオーナーさまにとって、ホットペッパービューティーへの広告費は、
             決して軽くない負担です。それでも「集客が止まるのが怖い」と、毎月の掲載料を払い続ける。
@@ -247,7 +259,7 @@ function About() {
             むずかしい設定なしで、今日からはじめていただけます。ネイリストさまが技術に集中できるよう、
             集客と運用の負担をそっと引き受けます。
           </p>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -258,13 +270,13 @@ function Tour() {
   return (
     <section id="tour" className="py-24 md:py-32" style={{ background: 'var(--gray-50)' }}>
       <div className="max-w-6xl mx-auto px-5 md:px-6">
-        <div className="text-center mb-16">
+        <Reveal className="text-center mb-16">
           <p className="text-xs tracking-[0.3em] mb-4 font-bold" style={{ color: 'var(--brand)' }}>PRODUCT TOUR</p>
           <h2 className="text-2xl md:text-4xl font-bold leading-[1.6]" style={{ color: 'var(--gray-900)' }}>3つの画面、ひとつの流れ。</h2>
           <p className="mt-4 text-sm md:text-base" style={{ color: 'var(--gray-600)' }}>
             予約 → 施術 → 売上。毎日の業務に、自然に溶け込むように。
           </p>
-        </div>
+        </Reveal>
 
         <div className="space-y-12">
           <TourCard title="01 予約カレンダー" desc="HPB・LINE・自社HP のすべての予約を、ひとつのカレンダーで。">
@@ -285,13 +297,13 @@ function Tour() {
 function TourCard({ title, desc, reverse, children }: { title: string; desc: string; reverse?: boolean; children: React.ReactNode }) {
   return (
     <div className={`grid md:grid-cols-2 gap-8 md:gap-14 items-center ${reverse ? 'md:[&>:first-child]:order-2' : ''}`}>
-      <div>
+      <Reveal direction={reverse ? 'left' : 'right'}>
         <h3 className="text-lg md:text-xl font-bold mb-3" style={{ color: 'var(--gray-900)' }}>{title}</h3>
         <p className="text-sm md:text-base leading-[2.0]" style={{ color: 'var(--gray-700)' }}>{desc}</p>
-      </div>
-      <div>
+      </Reveal>
+      <Reveal direction={reverse ? 'right' : 'left'} delayMs={120}>
         <BrowserChrome>{children}</BrowserChrome>
-      </div>
+      </Reveal>
     </div>
   );
 }
@@ -447,17 +459,18 @@ function Features() {
   return (
     <section id="features" className="py-24 md:py-32">
       <div className="max-w-6xl mx-auto px-5 md:px-6">
-        <div className="text-center mb-16">
+        <Reveal className="text-center mb-16">
           <p className="text-xs tracking-[0.3em] mb-4 font-bold" style={{ color: 'var(--brand)' }}>FEATURES</p>
           <h2 className="text-2xl md:text-4xl font-bold" style={{ color: 'var(--gray-900)' }}>できること</h2>
-        </div>
+        </Reveal>
         <div className="space-y-3">
-          {items.map((it) => {
+          {items.map((it, idx) => {
             const Icon = it.icon;
             return (
-              <div
+              <Reveal
                 key={it.n}
-                className="grid md:grid-cols-[80px_64px_1fr] gap-4 md:gap-8 items-start p-6 md:p-8"
+                delayMs={idx * 80}
+                className="grid md:grid-cols-[80px_64px_1fr] gap-4 md:gap-8 items-start p-6 md:p-8 lp-hover-lift"
                 style={{ border: '1px solid var(--gray-200)', borderRadius: 'var(--r-lg)', background: 'white' }}
               >
                 <div className="text-xs tracking-[0.3em]" style={{ color: 'var(--brand)' }}>{it.n}</div>
@@ -471,7 +484,7 @@ function Features() {
                   <h3 className="text-base md:text-lg font-bold mb-2" style={{ color: 'var(--gray-900)' }}>{it.t}</h3>
                   <p className="text-sm leading-[2.0]" style={{ color: 'var(--gray-600)' }}>{it.d}</p>
                 </div>
-              </div>
+              </Reveal>
             );
           })}
         </div>
@@ -495,11 +508,11 @@ function Comparison() {
   return (
     <section className="py-24 md:py-32" style={{ background: 'var(--gray-50)' }}>
       <div className="max-w-5xl mx-auto px-5 md:px-6">
-        <div className="text-center mb-14">
+        <Reveal className="text-center mb-14">
           <p className="text-xs tracking-[0.3em] mb-4 font-bold" style={{ color: 'var(--brand)' }}>COMPARISON</p>
           <h2 className="text-2xl md:text-4xl font-bold" style={{ color: 'var(--gray-900)' }}>他社サービスとの比較</h2>
-        </div>
-        <div className="overflow-x-auto" style={{ border: '1px solid var(--gray-200)', borderRadius: 'var(--r-lg)', background: 'white' }}>
+        </Reveal>
+        <Reveal delayMs={120} className="overflow-x-auto" style={{ border: '1px solid var(--gray-200)', borderRadius: 'var(--r-lg)', background: 'white' }}>
           <table className="w-full text-sm">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--gray-200)' }}>
@@ -524,7 +537,7 @@ function Comparison() {
               ))}
             </tbody>
           </table>
-        </div>
+        </Reveal>
         <p className="text-xs text-center mt-5" style={{ color: 'var(--gray-500)' }}>
           ※ 価格は税別・2026年4月時点の公開情報を基にした参考比較です。
         </p>
@@ -560,12 +573,14 @@ function Roi() {
   return (
     <section className="py-24 md:py-32">
       <div className="max-w-6xl mx-auto px-5 md:px-6">
-        <div className="text-center mb-12">
+        <Reveal className="text-center mb-12">
           <p className="text-xs tracking-[0.3em] mb-4 font-bold" style={{ color: 'var(--brand)' }}>ROI SIMULATOR</p>
           <h2 className="text-2xl md:text-4xl font-bold" style={{ color: 'var(--gray-900)' }}>どれくらい変わるか、試算してみる。</h2>
           <p className="mt-4 text-sm" style={{ color: 'var(--gray-600)' }}>数値を動かして、ご自身のサロンで試してみてください。</p>
-        </div>
-        <RoiCalculator />
+        </Reveal>
+        <Reveal delayMs={150}>
+          <RoiCalculator />
+        </Reveal>
       </div>
     </section>
   );
@@ -576,13 +591,14 @@ function CaseStudy() {
   return (
     <section className="py-24 md:py-32" style={{ background: 'var(--gray-50)' }}>
       <div className="max-w-4xl mx-auto px-5 md:px-6">
-        <div className="text-center mb-12">
+        <Reveal className="text-center mb-12">
           <p className="text-xs tracking-[0.3em] mb-4 font-bold" style={{ color: 'var(--brand)' }}>CASE STUDY (試算)</p>
           <h2 className="text-2xl md:text-4xl font-bold" style={{ color: 'var(--gray-900)' }}>2席ネイルサロンの場合</h2>
           <p className="mt-4 text-sm" style={{ color: 'var(--gray-600)' }}>※ 以下は業界標準値に基づく試算であり、実在の店舗の実績ではありません。</p>
-        </div>
+        </Reveal>
 
-        <div
+        <Reveal
+          delayMs={150}
           className="p-8 md:p-12 space-y-8"
           style={{ background: 'white', border: '1px solid var(--gray-200)', borderRadius: 'var(--r-lg)', boxShadow: 'var(--elev-2)' }}
         >
@@ -611,7 +627,7 @@ function CaseStudy() {
             <span className="font-bold" style={{ color: 'var(--brand)' }}> 試算 +¥7,650,000 / 年</span>。
             SalonLink の年間コスト ¥59,760 の、およそ 128 倍です。
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -648,21 +664,21 @@ function Gallery() {
   return (
     <section className="py-24 md:py-32">
       <div className="max-w-6xl mx-auto px-5 md:px-6">
-        <div className="text-center mb-14">
+        <Reveal className="text-center mb-14">
           <p className="text-xs tracking-[0.3em] mb-4 font-bold" style={{ color: 'var(--brand)' }}>GALLERY</p>
           <h2 className="text-2xl md:text-4xl font-bold" style={{ color: 'var(--gray-900)' }}>ネイルデザインの、ちいさな目録。</h2>
-        </div>
+        </Reveal>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {items.map((it, i) => (
-            <div key={i} className="group">
-              <div className="relative aspect-[4/5] overflow-hidden" style={{ borderRadius: 'var(--r-md)' }}>
-                <Image src={it.img} alt={it.title} fill sizes="25vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
+            <Reveal key={i} delayMs={i * 100} direction="up" className="group">
+              <div className="relative aspect-[4/5] overflow-hidden lp-image-zoom" style={{ borderRadius: 'var(--r-md)' }}>
+                <Image src={it.img} alt={it.title} fill sizes="25vw" className="object-cover" />
               </div>
               <div className="mt-3">
                 <div className="text-xs tracking-wider font-bold" style={{ color: 'var(--brand)' }}>{it.title}</div>
                 <div className="text-sm mt-1" style={{ color: 'var(--gray-700)' }}>{it.caption}</div>
               </div>
-            </div>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -680,15 +696,15 @@ function Why() {
   return (
     <section className="py-24 md:py-32" style={{ background: 'var(--gray-50)' }}>
       <div className="max-w-5xl mx-auto px-5 md:px-6">
-        <div className="text-center mb-14">
+        <Reveal className="text-center mb-14">
           <p className="text-xs tracking-[0.3em] mb-4 font-bold" style={{ color: 'var(--brand)' }}>WHY SALONLINK</p>
           <h2 className="text-2xl md:text-4xl font-bold" style={{ color: 'var(--gray-900)' }}>なぜ SalonLink なのか。</h2>
-        </div>
+        </Reveal>
         <div className="grid md:grid-cols-3 gap-5">
           {items.map((it, i) => {
             const Icon = it.icon;
             return (
-              <div key={i} className="p-7 md:p-8" style={{ background: 'white', border: '1px solid var(--gray-200)', borderRadius: 'var(--r-lg)' }}>
+              <Reveal key={i} delayMs={i * 120} className="p-7 md:p-8 lp-hover-lift" style={{ background: 'white', border: '1px solid var(--gray-200)', borderRadius: 'var(--r-lg)' }}>
                 <div
                   className="w-11 h-11 rounded-md flex items-center justify-center mb-5"
                   style={{ background: 'var(--brand-warm)' }}
@@ -697,7 +713,7 @@ function Why() {
                 </div>
                 <h3 className="font-bold text-base mb-3" style={{ color: 'var(--gray-900)' }}>{it.title}</h3>
                 <p className="text-sm leading-[2.0]" style={{ color: 'var(--gray-600)' }}>{it.text}</p>
-              </div>
+              </Reveal>
             );
           })}
         </div>
@@ -711,15 +727,15 @@ function Pricing() {
   return (
     <section id="pricing" className="py-24 md:py-32">
       <div className="max-w-5xl mx-auto px-5 md:px-6">
-        <div className="text-center mb-14">
+        <Reveal className="text-center mb-14">
           <p className="text-xs tracking-[0.3em] mb-4 font-bold" style={{ color: 'var(--brand)' }}>PRICING</p>
           <h2 className="text-2xl md:text-4xl font-bold" style={{ color: 'var(--gray-900)' }}>料金プラン</h2>
           <p className="mt-4 text-sm" style={{ color: 'var(--gray-600)' }}>まずは Free プランから、お気軽にお試しください。</p>
-        </div>
+        </Reveal>
         <div className="grid md:grid-cols-3 gap-5">
-          <Plan name="Free" price="0" desc="まずは触ってみたい方へ" features={['顧客 30名まで', '月間予約 50件まで', '基本カルテ']} />
-          <Plan name="Standard" price="4,980" desc="個人・小規模サロンさま向け" features={['顧客 300名', '予約無制限', 'LINE連携 / クーポン', '基本分析', 'HPB CSV取込']} recommended />
-          <Plan name="Pro" price="9,980" desc="成長期のサロンさま向け" features={['顧客 無制限', 'AI離反予測', 'デザインギャラリー', '複数スタッフ管理', 'HPB Inbound Webhook']} />
+          <Reveal delayMs={0}><Plan name="Free" price="0" desc="まずは触ってみたい方へ" features={['顧客 30名まで', '月間予約 50件まで', '基本カルテ']} /></Reveal>
+          <Reveal delayMs={120}><Plan name="Standard" price="4,980" desc="個人・小規模サロンさま向け" features={['顧客 300名', '予約無制限', 'LINE連携 / クーポン', '基本分析', 'HPB CSV取込']} recommended /></Reveal>
+          <Reveal delayMs={240}><Plan name="Pro" price="9,980" desc="成長期のサロンさま向け" features={['顧客 無制限', 'AI離反予測', 'デザインギャラリー', '複数スタッフ管理', 'HPB Inbound Webhook']} /></Reveal>
         </div>
       </div>
     </section>
@@ -729,7 +745,7 @@ function Pricing() {
 function Plan({ name, price, desc, features, recommended }: { name: string; price: string; desc: string; features: string[]; recommended?: boolean }) {
   return (
     <div
-      className="p-8"
+      className="p-8 lp-hover-lift"
       style={{
         background: 'white',
         border: `${recommended ? '2px' : '1px'} solid ${recommended ? 'var(--brand)' : 'var(--gray-200)'}`,
@@ -778,17 +794,17 @@ function HomepageOption() {
   return (
     <section className="py-24 md:py-32" style={{ background: 'var(--gray-50)' }}>
       <div className="max-w-5xl mx-auto px-5 md:px-6">
-        <div className="text-center mb-14">
+        <Reveal className="text-center mb-14">
           <p className="text-xs tracking-[0.3em] mb-4 font-bold" style={{ color: 'var(--brand)' }}>HOMEPAGE OPTION</p>
           <h2 className="text-2xl md:text-4xl font-bold" style={{ color: 'var(--gray-900)' }}>自社ホームページ制作オプション</h2>
           <p className="mt-4 text-sm" style={{ color: 'var(--gray-600)' }}>
             SalonLink の予約機能を埋め込んだ、サロン専用ホームページを制作します。
           </p>
-        </div>
+        </Reveal>
 
         <div className="grid md:grid-cols-2 gap-5 mb-8">
-          <HpPlan price="19,800" name="ライト" features={['1ページ完結LP', 'スマホ最適化', '予約ボタン埋め込み', '納期2週間']} />
-          <HpPlan price="49,800" name="スタンダード" features={['複数ページ構成', 'デザイン2案提案', '写真撮影アドバイス', '納期4週間', '3ヶ月無料メンテ']} recommended />
+          <Reveal delayMs={0}><HpPlan price="19,800" name="ライト" features={['1ページ完結LP', 'スマホ最適化', '予約ボタン埋め込み', '納期2週間']} /></Reveal>
+          <Reveal delayMs={150}><HpPlan price="49,800" name="スタンダード" features={['複数ページ構成', 'デザイン2案提案', '写真撮影アドバイス', '納期4週間', '3ヶ月無料メンテ']} recommended /></Reveal>
         </div>
 
         <div
@@ -807,7 +823,7 @@ function HomepageOption() {
 function HpPlan({ price, name, features, recommended }: { price: string; name: string; features: string[]; recommended?: boolean }) {
   return (
     <div
-      className="p-8"
+      className="p-8 lp-hover-lift"
       style={{
         background: 'white',
         border: `${recommended ? '2px' : '1px'} solid ${recommended ? 'var(--brand-gold)' : 'var(--gray-200)'}`,
@@ -850,18 +866,18 @@ function Security() {
   return (
     <section className="py-24 md:py-32">
       <div className="max-w-5xl mx-auto px-5 md:px-6">
-        <div className="text-center mb-14">
+        <Reveal className="text-center mb-14">
           <p className="text-xs tracking-[0.3em] mb-4 font-bold" style={{ color: 'var(--brand)' }}>SECURITY</p>
           <h2 className="text-2xl md:text-4xl font-bold" style={{ color: 'var(--gray-900)' }}>お客さま情報を、静かにお守りします。</h2>
-        </div>
+        </Reveal>
         <div className="grid md:grid-cols-3 gap-4">
           {items.map((it, i) => {
             const Icon = it.icon;
             return (
-              <div key={i} className="flex items-center gap-3 p-4" style={{ background: 'var(--gray-50)', borderRadius: 'var(--r-md)' }}>
+              <Reveal key={i} delayMs={i * 70} className="flex items-center gap-3 p-4" style={{ background: 'var(--gray-50)', borderRadius: 'var(--r-md)' }}>
                 <Icon className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--brand)' }} />
                 <span className="text-sm" style={{ color: 'var(--gray-700)' }}>{it.text}</span>
-              </div>
+              </Reveal>
             );
           })}
         </div>
@@ -874,7 +890,7 @@ function Security() {
 function FounderNote() {
   return (
     <section className="py-24" style={{ background: 'var(--brand-warm)' }}>
-      <div className="max-w-3xl mx-auto px-5 md:px-6 text-center">
+      <Reveal className="max-w-3xl mx-auto px-5 md:px-6 text-center">
         <p className="text-xs tracking-[0.3em] mb-5 font-bold" style={{ color: 'var(--brand)' }}>FOUNDER'S NOTE</p>
         <p className="text-lg md:text-xl leading-[2.1] font-medium" style={{ color: 'var(--gray-900)' }}>
           「ネイリストさまが、本当に集中したいのは、お客さまの爪と向き合う時間のはずです。
@@ -884,7 +900,7 @@ function FounderNote() {
         <p className="mt-8 text-xs tracking-widest" style={{ color: 'var(--gray-600)' }}>
           開発チームより
         </p>
-      </div>
+      </Reveal>
     </section>
   );
 }
@@ -904,19 +920,19 @@ function Faq() {
   return (
     <section id="faq" className="py-24 md:py-32" style={{ background: 'var(--gray-50)' }}>
       <div className="max-w-3xl mx-auto px-5 md:px-6">
-        <div className="text-center mb-14">
+        <Reveal className="text-center mb-14">
           <p className="text-xs tracking-[0.3em] mb-4 font-bold" style={{ color: 'var(--brand)' }}>FAQ</p>
           <h2 className="text-2xl md:text-4xl font-bold" style={{ color: 'var(--gray-900)' }}>よくあるご質問</h2>
-        </div>
+        </Reveal>
         <div className="space-y-3">
           {items.map((it, i) => (
-            <details key={i} className="group p-5 md:p-6" style={{ background: 'white', border: '1px solid var(--gray-200)', borderRadius: 'var(--r-md)' }}>
+            <Reveal key={i} delayMs={i * 50} as="details" className="group p-5 md:p-6 lp-hover-lift" style={{ background: 'white', border: '1px solid var(--gray-200)', borderRadius: 'var(--r-md)' }}>
               <summary className="cursor-pointer font-bold text-sm md:text-base flex items-center justify-between" style={{ color: 'var(--gray-900)' }}>
                 <span>{it.q}</span>
                 <ChevronRight className="w-4 h-4 transition-transform group-open:rotate-90" style={{ color: 'var(--gray-400)' }} />
               </summary>
               <p className="mt-4 text-sm leading-[2.1]" style={{ color: 'var(--gray-600)' }}>{it.a}</p>
-            </details>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -932,9 +948,15 @@ function FinalCta() {
         <Image src="/images/lp/slide-03.jpg" alt="" fill sizes="100vw" className="object-cover" />
         <div className="absolute inset-0" style={{ background: 'rgba(42,26,38,0.80)' }} />
       </div>
-      <div className="relative max-w-3xl mx-auto px-5 md:px-6 text-center">
+      <Reveal className="relative max-w-3xl mx-auto px-5 md:px-6 text-center">
         <div className="flex justify-center gap-1 mb-6">
-          {[1, 2, 3, 4, 5].map((i) => <Star key={i} className="w-4 h-4 fill-amber-300 text-amber-300" />)}
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Star
+              key={i}
+              className="w-4 h-4 fill-amber-300 text-amber-300"
+              style={{ animation: `lp-fade-up 500ms var(--ease-out-quart) ${i * 100}ms both` }}
+            />
+          ))}
         </div>
         <h2 className="text-2xl md:text-4xl font-bold leading-[1.6] mb-7 text-white">
           サロンさまの毎日を、<br />もう少しだけ、やさしく。
@@ -944,12 +966,12 @@ function FinalCta() {
         </p>
         <Link
           href="/register"
-          className="inline-block px-12 py-4 text-xs tracking-[0.2em] font-bold"
+          className="inline-block px-12 py-4 text-xs tracking-[0.2em] font-bold transition-transform hover:-translate-y-0.5"
           style={{ background: 'white', color: 'var(--gray-900)', borderRadius: 'var(--r-md)' }}
         >
           無料ではじめる
         </Link>
-      </div>
+      </Reveal>
     </section>
   );
 }
