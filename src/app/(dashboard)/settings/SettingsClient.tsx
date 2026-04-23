@@ -18,6 +18,7 @@ export default function SettingsClient({ salon, staff }: { salon: Salon; staff: 
     lineChannelSecret: salon.lineChannelSecret || '',
     lineAccessToken: salon.lineAccessToken || '',
     lineLiffId: salon.lineLiffId || '',
+    lineBotUserId: salon.lineBotUserId || '',
   });
   const [loading, setLoading] = useState<'info' | 'line' | null>(null);
   const [msg, setMsg] = useState('');
@@ -109,8 +110,12 @@ export default function SettingsClient({ salon, staff }: { salon: Salon; staff: 
             <Field label="LIFF ID" hint="LIFF アプリを作成した場合">
               <input className="input" value={line.lineLiffId} onChange={(e) => setLine({ ...line, lineLiffId: e.target.value })} />
             </Field>
-            <div className="text-xs p-2" style={{ background: '#f5efec', color: '#4a3a44' }}>
-              Webhook URL: <code className="text-xs">/api/line/webhook</code>
+            <Field label="Bot User ID" hint="LINE Developers Console で「Your user ID」として表示される U から始まる ID。Webhook の宛先振り分けに必須">
+              <input className="input" value={line.lineBotUserId} onChange={(e) => setLine({ ...line, lineBotUserId: e.target.value })} placeholder="U1234567890abcdef..." />
+            </Field>
+            <div className="text-xs p-2 leading-relaxed" style={{ background: '#f5efec', color: '#4a3a44' }}>
+              <div><strong>Webhook URL:</strong> <code className="text-xs">/api/line/webhook</code></div>
+              <div className="mt-1 text-[10px]">※ 複数サロン共通の URL です。Bot User ID で識別されます</div>
             </div>
             <button type="submit" disabled={loading === 'line'} className="btn-brand w-full justify-center py-2.5">
               <Save className="w-4 h-4" />

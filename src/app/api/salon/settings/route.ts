@@ -22,6 +22,7 @@ export async function PATCH(req: NextRequest) {
         lineChannelSecret: body.lineChannelSecret ?? existing.lineChannelSecret,
         lineAccessToken: body.lineAccessToken ?? existing.lineAccessToken,
         lineLiffId: body.lineLiffId ?? existing.lineLiffId,
+        lineBotUserId: body.lineBotUserId ?? existing.lineBotUserId,
         businessHours: body.businessHours ?? existing.businessHours ?? {},
       },
     });

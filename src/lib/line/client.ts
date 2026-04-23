@@ -1,53 +1,68 @@
-// LINE Messaging API クライアント
-// 環境変数に LINE_CHANNEL_ACCESS_TOKEN / LINE_CHANNEL_SECRET が設定されていれば実API呼び出し
-// 未設定時はモック動作（ログのみ）
+// LINE Messaging API クライアント (マルチテナント対応)
+//
+// 各呼び出しで salon 固有の credentials を受け取る。
+// credentials が未指定なら env var (後方互換) → 無ければ mock でログのみ。
 
 const API_BASE = 'https://api.line.me/v2/bot';
 
-function getToken() {
-  return process.env.LINE_CHANNEL_ACCESS_TOKEN || '';
+export interface LineCreds {
+  channelAccessToken: string;
+  channelSecret?: string;
 }
 
-async function lineFetch(path: string, body: unknown) {
-  const token = getToken();
-  if (!token) {
-    console.log('[LINE Mock]', path, JSON.stringify(body).slice(0, 200));
+function resolveCreds(creds?: LineCreds | null): LineCreds | null {
+  if (creds?.channelAccessToken) return creds;
+  const token = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+  if (token) {
+    return { channelAccessToken: token, channelSecret: process.env.LINE_CHANNEL_SECRET };
+  }
+  return null;
+}
+
+async function lineFetch(path: string, body: unknown, creds?: LineCreds | null) {
+  const resolved = resolveCreds(creds);
+  if (!resolved) {
+    console.log('[LINE mock]', path, JSON.stringify(body).slice(0, 200));
     return { ok: true, mock: true };
   }
-  const res = await fetch(API_BASE + path, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(body),
-  });
-  return { ok: res.ok, status: res.status, body: await res.text() };
+  try {
+    const res = await fetch(API_BASE + path, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${resolved.channelAccessToken}`,
+      },
+      body: JSON.stringify(body),
+    });
+    return { ok: res.ok, status: res.status, body: await res.text() };
+  } catch (err) {
+    console.error('[LINE] fetch failed', err);
+    return { ok: false, error: String(err) };
+  }
 }
 
-export async function pushText(userId: string, text: string) {
+export async function pushText(userId: string, text: string, creds?: LineCreds | null) {
   return lineFetch('/message/push', {
     to: userId,
     messages: [{ type: 'text', text }],
-  });
+  }, creds);
 }
 
-export async function replyText(replyToken: string, text: string) {
+export async function replyText(replyToken: string, text: string, creds?: LineCreds | null) {
   return lineFetch('/message/reply', {
     replyToken,
     messages: [{ type: 'text', text }],
-  });
+  }, creds);
 }
 
-export async function broadcastText(text: string) {
+export async function broadcastText(text: string, creds?: LineCreds | null) {
   return lineFetch('/message/broadcast', {
     messages: [{ type: 'text', text }],
-  });
+  }, creds);
 }
 
-export async function multicastText(userIds: string[], text: string) {
+export async function multicastText(userIds: string[], text: string, creds?: LineCreds | null) {
   if (userIds.length === 0) return { ok: true };
-  // LINEは一度に500件まで
   const batches: string[][] = [];
   for (let i = 0; i < userIds.length; i += 500) batches.push(userIds.slice(i, i + 500));
   const results = [];
@@ -56,61 +71,15 @@ export async function multicastText(userIds: string[], text: string) {
       await lineFetch('/message/multicast', {
         to: batch,
         messages: [{ type: 'text', text }],
-      })
+      }, creds)
     );
   }
   return { ok: true, batches: results.length };
 }
 
-export async function pushFlexCoupon(userId: string, title: string, description: string, discount: string) {
-  return lineFetch('/message/push', {
-    to: userId,
-    messages: [
-      {
-        type: 'flex',
-        altText: `${title} - ${discount}`,
-        contents: {
-          type: 'bubble',
-          hero: {
-            type: 'box',
-            layout: 'vertical',
-            contents: [
-              { type: 'text', text: '🎫 特別クーポン', size: 'sm', color: '#E11D74', weight: 'bold' },
-            ],
-            paddingAll: 'lg',
-            backgroundColor: '#FDF2F8',
-          },
-          body: {
-            type: 'box',
-            layout: 'vertical',
-            contents: [
-              { type: 'text', text: title, weight: 'bold', size: 'lg', wrap: true },
-              { type: 'text', text: discount, size: 'xxl', weight: 'bold', color: '#E11D74', margin: 'md' },
-              { type: 'text', text: description, size: 'sm', color: '#78716C', wrap: true, margin: 'md' },
-            ],
-          },
-          footer: {
-            type: 'box',
-            layout: 'vertical',
-            contents: [
-              {
-                type: 'button',
-                style: 'primary',
-                color: '#E11D74',
-                action: { type: 'uri', label: '予約する', uri: 'https://example.com/book' },
-              },
-            ],
-          },
-        },
-      },
-    ],
-  });
-}
-
-// Webhook署名検証
-export function verifySignature(body: string, signature: string): boolean {
-  const secret = process.env.LINE_CHANNEL_SECRET;
-  if (!secret) return true; // 開発時バイパス
+/** 指定された secret で Webhook 署名を検証 */
+export function verifySignatureWith(body: string, signature: string, secret: string): boolean {
+  if (!secret) return false;
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const crypto = require('crypto') as typeof import('crypto');
@@ -119,4 +88,11 @@ export function verifySignature(body: string, signature: string): boolean {
   } catch {
     return false;
   }
+}
+
+/** 後方互換: env var ベースの検証 (現在は webhook で使わない) */
+export function verifySignature(body: string, signature: string): boolean {
+  const secret = process.env.LINE_CHANNEL_SECRET;
+  if (!secret) return true; // 開発時バイパス
+  return verifySignatureWith(body, signature, secret);
 }
