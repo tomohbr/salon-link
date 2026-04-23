@@ -1,5 +1,6 @@
 import Sidebar from '@/components/shared/Sidebar';
 import BottomTabBar from '@/components/shared/BottomTabBar';
+import CommandPalette from '@/components/shared/CommandPalette';
 import { getCurrentSalon } from '@/lib/salonData';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -11,6 +12,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <div className="max-w-7xl mx-auto p-4 md:p-8">{children}</div>
       </main>
       <BottomTabBar />
+      <CommandPalette />
     </div>
   );
 }
