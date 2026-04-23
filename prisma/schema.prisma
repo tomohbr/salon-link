@@ -43,6 +43,8 @@ model Salon {
   lineChannelSecret   String?
   lineAccessToken     String?
   lineLiffId          String?
+  lineBotUserId       String?   // LINE Bot 自身の userId (メッセージ振分用)
+  hpbInboundToken     String?   @unique // Zapier 等のインバウンド用一意トークン
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
@@ -55,6 +57,9 @@ model Salon {
   coupons             Coupon[]
   messages            Message[]
   designs             NailDesign[]
+  products            Product[]
+  stockTxns           StockTransaction[]
+  auditLogs           AuditLog[]
 }
 
 model Staff {
@@ -124,31 +129,45 @@ model Menu {
 }
 
 model Reservation {
-  id           String   @id @default(cuid())
-  salonId      String
-  salon        Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
-  customerId   String?
-  customer     Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  staffId      String?
-  staff        Staff?   @relation(fields: [staffId], references: [id], onDelete: SetNull)
-  menuId       String?
-  menu         Menu?    @relation(fields: [menuId], references: [id], onDelete: SetNull)
-  menuName     String?
-  menuPrice    Int?
-  date         String
-  startTime    String
-  endTime      String
-  status       String   @default("confirmed")
-  source       String   @default("web")
-  notes        String?
-  reminderSent Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             String   @id @default(cuid())
+  salonId        String
+  salon          Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  customerId     String?
+  customer       Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  staffId        String?
+  staff          Staff?   @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  menuId         String?
+  menu           Menu?    @relation(fields: [menuId], references: [id], onDelete: SetNull)
+  menuName       String?
+  menuPrice      Int?
+  date           String
+  startTime      String
+  endTime        String
+  status         String   @default("confirmed")
+  source         String   @default("web")
+  notes          String?
+  reminderSent   Boolean  @default(false)
+
+  // 決済 & 売上関連
+  paymentMethod  String?   // 'cash' | 'credit' | 'qr' | 'coin' | 'point' | 'other'
+  paidAmount     Int?      // 施術実際支払額 (ディスカウント等反映後)
+  paidAt         DateTime? // 精算完了時刻
+  retailAmount   Int?      // 店販 (ケアオイル/ジェル等)
+  tip            Int?      // チップ
+  designationFee Int?      // 指名料 (ネイリスト階層別)
+
+  // 外部 ID (HPB 予約番号等) - 冪等性
+  externalId     String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   treatments TreatmentRecord[]
 
+  @@unique([salonId, externalId])
   @@index([salonId, date])
   @@index([customerId])
+  @@index([salonId, paidAt])
 }
 
 model TreatmentRecord {
@@ -222,4 +241,65 @@ model NailDesign {
   likesCount  Int      @default(0)
   isPublished Boolean  @default(true)
   createdAt   DateTime @default(now())
+}
+
+// 店販在庫 (ジェル銘柄・ファイル・ケア用品)
+model Product {
+  id          String   @id @default(cuid())
+  salonId     String
+  salon       Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  name        String
+  category    String?  // "ジェル" | "ファイル" | "ケア" | "備品" | "その他"
+  brand       String?  // PREGEL / Bettygel / ageha 等
+  colorCode   String?  // 色番 #127 等
+  price       Int      @default(0)
+  cost        Int      @default(0)
+  stockQty    Int      @default(0)
+  reorderAt   Int      @default(0) // 閾値を下回ったら再発注アラート
+  isRetail    Boolean  @default(false) // 店販可能か
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  transactions StockTransaction[]
+
+  @@index([salonId, category])
+}
+
+// 在庫トランザクション (入出庫ログ)
+model StockTransaction {
+  id         String   @id @default(cuid())
+  salonId    String
+  salon      Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  delta      Int      // +入庫 / -出庫
+  reason     String?  // "仕入" | "施術消費" | "店販" | "棚卸補正" | "廃棄"
+  note       String?
+  createdAt  DateTime @default(now())
+  createdBy  String?  // User.id
+
+  @@index([salonId, createdAt])
+  @@index([productId])
+}
+
+// 監査ログ
+model AuditLog {
+  id         String   @id @default(cuid())
+  salonId    String?
+  salon      Salon?   @relation(fields: [salonId], references: [id], onDelete: SetNull)
+  userId     String?  // 実行ユーザー
+  userEmail  String?  // 非正規化 (ユーザー削除後も追跡可)
+  action     String   // "customer.create" | "reservation.update" | ...
+  entityType String?  // "customer" | "reservation" ...
+  entityId   String?
+  beforeJson Json?
+  afterJson  Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([salonId, createdAt])
+  @@index([userId, createdAt])
+  @@index([action])
 }
