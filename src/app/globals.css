@@ -205,18 +205,156 @@ html, body {
   padding: 20px;
 }
 
+/* ─── デザイントークン (業界最高水準の土台) ─── */
+:root {
+  /* Grayscale */
+  --gray-0: #ffffff;
+  --gray-50: #fafaf9;
+  --gray-100: #f5f5f4;
+  --gray-200: #e7e5e4;
+  --gray-300: #d6d3d1;
+  --gray-400: #a8a29e;
+  --gray-500: #78716c;
+  --gray-600: #57534e;
+  --gray-700: #44403c;
+  --gray-800: #292524;
+  --gray-900: #1c1917;
+  --gray-950: #0c0a09;
+
+  /* Semantic */
+  --color-success: #16a34a;
+  --color-success-bg: #ecfdf5;
+  --color-danger: #dc2626;
+  --color-danger-bg: #fef2f2;
+  --color-warn: #d97706;
+  --color-warn-bg: #fffbeb;
+  --color-info: #2563eb;
+  --color-info-bg: #eff6ff;
+
+  /* Elevation (5-tier) */
+  --elev-1: 0 1px 2px rgba(28, 25, 23, 0.04);
+  --elev-2: 0 1px 3px rgba(28, 25, 23, 0.06), 0 1px 2px rgba(28, 25, 23, 0.04);
+  --elev-3: 0 4px 6px -1px rgba(28, 25, 23, 0.08), 0 2px 4px -2px rgba(28, 25, 23, 0.05);
+  --elev-4: 0 10px 15px -3px rgba(28, 25, 23, 0.1), 0 4px 6px -4px rgba(28, 25, 23, 0.05);
+  --elev-5: 0 20px 25px -5px rgba(28, 25, 23, 0.12), 0 8px 10px -6px rgba(28, 25, 23, 0.06);
+
+  /* Motion */
+  --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+  --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1);
+  --dur-fast: 120ms;
+  --dur-med: 220ms;
+  --dur-slow: 400ms;
+
+  /* Radius */
+  --r-xs: 2px;
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-2xl: 24px;
+
+  /* Brand gold (ネイル版アクセント) */
+  --brand-gold: #c9a96e;
+  --brand-gold-light: #f5ecd8;
+}
+
+/* Focus ring - キーボード操作時のみ表示 */
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+:focus:not(:focus-visible) { outline: none; }
+
+/* ─── .input (iOS Safari 対応) ─── */
+/* 注意: -webkit-text-fill-color は placeholder にまで黒を強制してしまうため使わない。
+   代わりに color/opacity でコントロール。autofill 時のみ明示的に色を付ける。 */
 .input {
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #e7e5e4;
-  border-radius: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--r-md);
   background: white;
   font-size: 14px;
+  color: var(--gray-900);
+  font-family: inherit;
+  font-style: normal;
+  transition: border-color var(--dur-fast) var(--ease-out-quart),
+              box-shadow var(--dur-fast) var(--ease-out-quart);
+  -webkit-appearance: none;
+  appearance: none;
 }
+.input::placeholder {
+  color: var(--gray-300);
+  font-style: normal;
+  opacity: 1;
+}
+.input::-webkit-input-placeholder { color: var(--gray-300); font-style: normal; opacity: 1; }
+.input::-moz-placeholder { color: var(--gray-300); font-style: normal; opacity: 1; }
 .input:focus {
-  outline: 2px solid var(--brand);
-  outline-offset: -1px;
-  border-color: transparent;
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(99, 63, 90, 0.12);
+}
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--gray-900);
+  -webkit-box-shadow: 0 0 0 1000px white inset;
+  transition: background-color 99999s;
+}
+.input:disabled {
+  background: var(--gray-50);
+  color: var(--gray-500);
+  cursor: not-allowed;
+}
+
+/* ─── Modal bottom-sheet (iOSネイティブ風) ─── */
+.modal-sheet-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 10, 9, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 50;
+  animation: fadeIn var(--dur-med) var(--ease-out-quart);
+}
+.modal-sheet {
+  background: white;
+  box-shadow: var(--elev-5);
+  animation: slideUp var(--dur-med) var(--ease-out-quart);
+  max-height: calc(100vh - env(safe-area-inset-top, 0px) - 40px);
+  overflow-y: auto;
+}
+@media (max-width: 640px) {
+  .modal-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: var(--r-2xl) var(--r-2xl) 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Bottom tab bar (safe-area 対応) */
+.bottom-tab-bar {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* tabular-nums for numbers */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  letter-spacing: -0.025em;
 }
 
 .badge {
