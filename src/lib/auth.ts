@@ -38,6 +38,12 @@ export async function createSession(payload: SessionPayload) {
     .sign(getSecret());
 
   const cookieStore = await cookies();
+
+  // Session fixation 防止: 既存セッション関連 cookie を全て破棄してから新規発行
+  cookieStore.set(COOKIE_NAME, '', { maxAge: 0, path: '/' });
+  cookieStore.set('salonlink_csrf', '', { maxAge: 0, path: '/' });
+
+  // 新しいセッション Cookie を発行
   cookieStore.set(COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

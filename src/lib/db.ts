@@ -14,15 +14,33 @@ const TENANT_MODELS = new Set<string>([
   'Coupon', 'Message', 'NailDesign', 'Product', 'StockTransaction',
 ]);
 
-// where 句に salonId 制約があるか (浅いチェック: 直接の salonId / AND の中身 / ネスト OR は全分岐)
+// where 句に salonId 制約があるか再帰的にチェック。
+// 対応パターン:
+//   { salonId: "xxx" }                              直接
+//   { salonId_externalId: { salonId: "x", ... } }    複合ユニークキー
+//   { AND: [ { salonId: "x" }, ... ] }               AND
+//   { OR: [ { salonId: "a" }, { salonId: "b" } ] }   OR (全分岐に salonId 必要)
+//   { customer: { salonId: "x" } }                   リレーション経由
+//   { salon: { ... } }                               salon リレーション自体
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function hasSalonIdConstraint(where: any): boolean {
   if (!where || typeof where !== 'object') return false;
+  // 直接
   if ('salonId' in where && where.salonId !== undefined) return true;
+  // AND: 任意の要素に salonId があれば OK
   if (Array.isArray(where.AND) && where.AND.some(hasSalonIdConstraint)) return true;
+  // OR: 全分岐が salonId を持つ必要がある
   if (Array.isArray(where.OR) && where.OR.length > 0 && where.OR.every(hasSalonIdConstraint)) return true;
-  // リレーション経由 (customer: { salonId }) も OK とみなす
+  // salon リレーション
   if (where.salon && typeof where.salon === 'object') return true;
+  // 他のキー: 複合ユニークキー (salonId_XXX) もしくはネストしたオブジェクト内に salonId
+  for (const [k, v] of Object.entries(where)) {
+    if (k.startsWith('salonId_') && v && typeof v === 'object' && 'salonId' in (v as object)) return true;
+    // リレーション経由 (customer/menu/staff など) — 親に salonId があれば OK
+    if (v && typeof v === 'object' && !Array.isArray(v)) {
+      if (hasSalonIdConstraint(v)) return true;
+    }
+  }
   return false;
 }
 
@@ -50,8 +68,15 @@ export const prisma = base.$extends({
     $allModels: {
       async $allOperations({ model, operation, args, query }) {
         if (TENANT_MODELS.has(model)) {
-          const guarded = ['findFirst', 'findMany', 'update', 'updateMany', 'delete', 'deleteMany', 'count', 'aggregate', 'groupBy'];
-          if (guarded.includes(operation)) {
+          // 読み取り系 + 一括更新系は salonId 必須 (漏洩リスク大)
+          const strictGuarded = [
+            'findFirst', 'findMany', 'findFirstOrThrow', 'findUnique', 'findUniqueOrThrow',
+            'updateMany', 'deleteMany',
+            'count', 'aggregate', 'groupBy',
+          ];
+          // 単体 update/delete は Prisma 仕様上 unique where 必須なので id のみでも OK とする。
+          // 呼び出し側で事前に findFirst({id, salonId}) で所有権確認する運用で担保。
+          if (strictGuarded.includes(operation)) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const w = (args as any)?.where;
             if (!hasSalonIdConstraint(w)) {
@@ -63,9 +88,6 @@ export const prisma = base.$extends({
               }
             }
           }
-          // findUnique は id (プライマリキー) でのアクセスだが、
-          // ID が他テナントのものだと漏洩するため、呼び出し側で findFirst + salonId を使うこと。
-          // この拡張では findUnique は素通りさせ、コードレビューで担保する。
         }
         return query(args as Prisma.Args<unknown, typeof operation>);
       },

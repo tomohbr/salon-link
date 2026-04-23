@@ -7,12 +7,24 @@ import { logAudit } from '@/lib/audit';
 export async function POST(req: NextRequest) {
   try {
     const ip = getClientIp(req.headers);
-    const rl = rateLimit({ key: `login:${ip}`, limit: 10, windowSec: 60 });
-    if (!rl.ok) return NextResponse.json({ error: rl.message }, { status: 429 });
+
+    // IP ベースレート制限: 1分あたり 10回
+    const ipRl = rateLimit({ key: `login:ip:${ip}`, limit: 10, windowSec: 60 });
+    if (!ipRl.ok) return NextResponse.json({ error: ipRl.message }, { status: 429 });
 
     const { email, password } = await req.json();
     if (!email || !password) {
       return NextResponse.json({ error: 'メールアドレスとパスワードを入力してください' }, { status: 400 });
+    }
+
+    // Email ベースレート制限: 同一メールに対するブルートフォース対策 (5回/10分)
+    const emailKey = String(email).toLowerCase().trim();
+    const emailRl = rateLimit({ key: `login:email:${emailKey}`, limit: 5, windowSec: 600 });
+    if (!emailRl.ok) {
+      return NextResponse.json(
+        { error: 'ログイン試行回数が多すぎます。10分後に再度お試しください。' },
+        { status: 429 }
+      );
     }
 
     const user = await prisma.user.findUnique({
