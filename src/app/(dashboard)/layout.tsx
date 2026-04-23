@@ -1,14 +1,16 @@
 import Sidebar from '@/components/shared/Sidebar';
+import BottomTabBar from '@/components/shared/BottomTabBar';
 import { getCurrentSalon } from '@/lib/salonData';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { salon, session } = await getCurrentSalon();
   return (
-    <div className="flex min-h-screen bg-stone-50">
+    <div className="flex min-h-screen" style={{ background: 'var(--gray-50)' }}>
       <Sidebar userName={session.name} userRole={session.role} salonName={salon.name} plan={salon.plan} />
-      <main className="flex-1 overflow-x-hidden">
-        <div className="max-w-7xl mx-auto p-8">{children}</div>
+      <main className="flex-1 overflow-x-hidden pb-16 md:pb-0">
+        <div className="max-w-7xl mx-auto p-4 md:p-8">{children}</div>
       </main>
+      <BottomTabBar />
     </div>
   );
 }

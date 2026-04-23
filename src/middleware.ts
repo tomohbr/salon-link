@@ -18,6 +18,8 @@ const protectedPaths = [
   '/designs',
   '/analytics',
   '/settings',
+  '/sales',
+  '/products',
   '/superadmin',
 ];
 
@@ -65,6 +67,8 @@ export const config = {
     '/designs/:path*',
     '/analytics/:path*',
     '/settings/:path*',
+    '/sales/:path*',
+    '/products/:path*',
     '/superadmin/:path*',
   ],
 };
