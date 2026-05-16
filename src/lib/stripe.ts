@@ -2,13 +2,15 @@ import Stripe from 'stripe';
 
 // Stripe client - テストキー対応
 // 環境変数: STRIPE_SECRET_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET
-// 未設定時は "demo mode" となり、決済画面をスキップして自動で成功扱いにする
+// 開発環境で未設定時のみ "demo mode" となり、決済画面をスキップして自動で成功扱いにする
 
 const key = process.env.STRIPE_SECRET_KEY || '';
 
 export const stripe = key ? new Stripe(key) : null;
 
-export const isDemoMode = !stripe;
+// 本番では Stripe 未設定でもデモモードに落とさない。
+// 落とすと全ての新規登録が無償でアクティブ化され、製品をタダで配ることになる。
+export const isDemoMode = !stripe && process.env.NODE_ENV !== 'production';
 
 // プラン価格定義
 export const PLANS = {

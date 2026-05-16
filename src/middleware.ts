@@ -1,11 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
+import { getSessionSecret } from '@/lib/sessionSecret';
 
 const COOKIE_NAME = 'salonlink_session';
 
 function getSecret() {
-  const secret = process.env.SESSION_SECRET || 'dev-secret-change-me-in-production-12345678';
-  return new TextEncoder().encode(secret);
+  return new TextEncoder().encode(getSessionSecret());
 }
 
 const protectedPaths = [

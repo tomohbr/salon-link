@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { CheckCircle2 } from 'lucide-react';
 import { prisma } from '@/lib/db';
 import { createSession, getSession } from '@/lib/auth';
+import { stripe } from '@/lib/stripe';
 
 export default async function RegisterSuccessPage({
   searchParams,
@@ -21,10 +22,27 @@ export default async function RegisterSuccessPage({
       include: { users: { where: { role: 'admin' } } },
     });
     if (salon) {
-      // Stripe からの戻り: session_id があれば active 化
-      if (salon.status === 'pending_payment' && sp.session_id) {
-        await prisma.salon.update({ where: { id: sp.salon }, data: { status: 'active' } });
-        salon.status = 'active';
+      // Stripe からの戻り: session_id の「存在」では信用せず、必ず Stripe に
+      // 問い合わせて決済完了かつ当該サロンのセッションであることを検証する。
+      if (salon.status === 'pending_payment' && sp.session_id && stripe) {
+        try {
+          const session = await stripe.checkout.sessions.retrieve(sp.session_id);
+          const paid =
+            session.payment_status === 'paid' || session.status === 'complete';
+          if (paid && session.metadata?.salonId === salon.id) {
+            await prisma.salon.update({
+              where: { id: sp.salon },
+              data: {
+                status: 'active',
+                stripeCustomerId:
+                  typeof session.customer === 'string' ? session.customer : null,
+              },
+            });
+            salon.status = 'active';
+          }
+        } catch (e) {
+          console.error('[register/success] stripe verify failed', e);
+        }
       }
       // active なら自動ログイン
       if (salon.status === 'active' && salon.users[0]) {

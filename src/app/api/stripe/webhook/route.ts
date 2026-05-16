@@ -15,6 +15,13 @@ export async function POST(req: NextRequest) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
   const body = await req.text();
 
+  // 本番では署名検証必須。未設定だと誰でも checkout.session.completed を
+  // 偽造して任意のサロンを active 化できてしまう。
+  if (!webhookSecret && process.env.NODE_ENV === 'production') {
+    console.error('[Stripe] STRIPE_WEBHOOK_SECRET is not configured in production');
+    return NextResponse.json({ error: 'webhook not configured' }, { status: 500 });
+  }
+
   let event: Stripe.Event;
   try {
     if (webhookSecret) {

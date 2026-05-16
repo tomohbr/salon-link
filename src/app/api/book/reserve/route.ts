@@ -62,25 +62,57 @@ export async function POST(req: NextRequest) {
 
     // 終了時刻を計算
     const [sh, sm] = startTime.split(':').map(Number);
-    const endMin = sh * 60 + sm + menu.durationMinutes;
+    const startMin = sh * 60 + sm;
+    const endMin = startMin + menu.durationMinutes;
     const eh = Math.floor(endMin / 60);
     const em = endMin % 60;
     const endTime = `${String(eh).padStart(2, '0')}:${String(em).padStart(2, '0')}`;
 
-    const reservation = await prisma.reservation.create({
-      data: {
-        salonId: salon.id,
-        customerId: customer.id,
-        menuId: menu.id,
-        menuName: menu.name,
-        menuPrice: menu.price,
-        date,
-        startTime,
-        endTime,
-        status: 'confirmed',
-        source: validSource as 'line' | 'web' | 'hotpepper' | 'phone' | 'walk_in',
-      },
-    });
+    const toMin = (hhmm: string) => {
+      const [h, m] = hhmm.split(':').map(Number);
+      return h * 60 + m;
+    };
+
+    // ダブルブッキング防止: 重複チェックと作成を Serializable トランザクションで実行。
+    // 上の getAvailableSlots チェックだけだと、同じ枠への同時リクエストが
+    // 両方ともチェックを通過して二重予約になる（非トランザクションの競合）。
+    let reservation;
+    try {
+      reservation = await prisma.$transaction(
+        async (tx) => {
+          const sameDay = await tx.reservation.findMany({
+            where: { salonId: salon.id, date, status: { in: ['pending', 'confirmed', 'completed'] } },
+            select: { startTime: true, endTime: true },
+          });
+          const overlap = sameDay.some((r) => {
+            return startMin < toMin(r.endTime) && endMin > toMin(r.startTime);
+          });
+          if (overlap) throw new Error('SLOT_TAKEN');
+          return tx.reservation.create({
+            data: {
+              salonId: salon.id,
+              customerId: customer.id,
+              menuId: menu.id,
+              menuName: menu.name,
+              menuPrice: menu.price,
+              date,
+              startTime,
+              endTime,
+              status: 'confirmed',
+              source: validSource as 'line' | 'web' | 'hotpepper' | 'phone' | 'walk_in',
+            },
+          });
+        },
+        { isolationLevel: 'Serializable' },
+      );
+    } catch (e) {
+      // 明示的な重複、または Serializable の競合失敗(P2034: 別の予約が先に確定)
+      const code = (e as { code?: string })?.code;
+      if ((e instanceof Error && e.message === 'SLOT_TAKEN') || code === 'P2034') {
+        return NextResponse.json({ error: 'この時間枠は既に埋まっています' }, { status: 409 });
+      }
+      throw e;
+    }
 
     const origin = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
     const accessUrl = buildAccessUrl(origin, reservation.id);

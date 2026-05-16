@@ -5,9 +5,10 @@
 //   /book/reservation/cm123abc?code=xxxxx
 
 import { createHmac, timingSafeEqual } from 'crypto';
+import { getSessionSecret } from './sessionSecret';
 
 function getKey(): string {
-  return process.env.SESSION_SECRET || 'dev-secret-change-me-in-production-12345678';
+  return getSessionSecret();
 }
 
 /** 予約 ID から短いアクセスコードを生成 (12 文字) */

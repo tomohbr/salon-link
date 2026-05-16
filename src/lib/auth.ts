@@ -3,13 +3,13 @@ import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import { prisma } from './db';
+import { getSessionSecret } from './sessionSecret';
 
 const COOKIE_NAME = 'salonlink_session';
 const ALG = 'HS256';
 
 function getSecret() {
-  const secret = process.env.SESSION_SECRET || 'dev-secret-change-me-in-production-12345678';
-  return new TextEncoder().encode(secret);
+  return new TextEncoder().encode(getSessionSecret());
 }
 
 export type Role = 'superadmin' | 'admin' | 'staff';
