@@ -31,6 +31,8 @@ export default function BookingFlow({
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [slotsError, setSlotsError] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -41,25 +43,39 @@ export default function BookingFlow({
   // 空き枠取得
   useEffect(() => {
     if (step !== 'slot' || !selectedMenu || !selectedDate) return;
+    let cancelled = false;
     setLoadingSlots(true);
+    setSlotsError(false);
     fetch(`/api/book/slots?slug=${slug}&date=${selectedDate}&menuId=${selectedMenu.id}`)
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) throw new Error('slots fetch failed');
+        return r.json();
+      })
       .then((data) => {
-        setSlots(data.slots || []);
+        if (cancelled) return;
+        setSlots(Array.isArray(data.slots) ? data.slots : []);
         setLoadingSlots(false);
       })
       .catch(() => {
+        if (cancelled) return;
         setSlots([]);
+        setSlotsError(true);
         setLoadingSlots(false);
       });
-  }, [step, selectedMenu, selectedDate, slug]);
+    return () => {
+      cancelled = true;
+    };
+  }, [step, selectedMenu, selectedDate, slug, retryKey]);
 
-  // 次の14日間の日付を生成
+  // 次の14日間の日付を生成。
+  // iso は端末ローカル日付（＝来店客の居る日本時間）から組み立てる。
+  // toISOString() だと UTC 変換され、表示ラベルと送信値が前日にズレることがある。
   const nextDays = Array.from({ length: 14 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() + i);
+    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     return {
-      iso: d.toISOString().slice(0, 10),
+      iso,
       label: `${d.getMonth() + 1}/${d.getDate()}`,
       dow: ['日', '月', '火', '水', '木', '金', '土'][d.getDay()],
       isWeekend: d.getDay() === 0 || d.getDay() === 6,
@@ -256,6 +272,18 @@ export default function BookingFlow({
             </h2>
             {loadingSlots ? (
               <p className="text-sm text-stone-500 py-6 text-center">空き枠を確認中...</p>
+            ) : slotsError ? (
+              <div className="py-6 text-center">
+                <p className="text-sm text-stone-500 mb-3">
+                  空き枠の取得に失敗しました。通信環境をご確認ください。
+                </p>
+                <button
+                  onClick={() => setRetryKey((k) => k + 1)}
+                  className="px-5 py-2 rounded-lg text-sm font-semibold border border-stone-300 hover:bg-stone-50"
+                >
+                  再試行
+                </button>
+              </div>
             ) : slots.length === 0 ? (
               <p className="text-sm text-stone-500 py-6 text-center">枠情報を取得できません</p>
             ) : slots.every((s) => !s.available) ? (
