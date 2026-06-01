@@ -13,7 +13,7 @@
 
 import { Resend } from 'resend';
 
-const DEFAULT_FROM = 'SalonLink <onboarding@resend.dev>'; // sandbox; replace after domain verification
+const DEFAULT_FROM = 'SalonLink <onboarding@resend.dev>'; // sandbox; 本番は独自ドメイン設定後に差替
 const DEFAULT_REPLY_TO = 'shibahara.724@gmail.com';
 
 let _client: Resend | null = null;
@@ -104,11 +104,11 @@ export function inquiryAckTemplate(opts: {
   const subject = '【SalonLink】お問合せを受け付けました';
   const html = `
 <!doctype html>
-<html lang="ja"><body style="font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif;color:#14100c;background:#f5e8cf;margin:0;padding:32px 16px;">
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SalonLink</title></head><body style="font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif;color:#14100c;background:#f5e8cf;margin:0;padding:32px 16px;">
   <table role="presentation" style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #cdbb95;">
     <tr><td style="padding:32px 28px;">
       <div style="font-family:'Georgia',serif;font-style:italic;font-size:24px;color:#14100c;margin-bottom:8px;">SalonLink</div>
-      <div style="font-size:11px;letter-spacing:0.2em;color:#a89778;text-transform:uppercase;margin-bottom:28px;">for Hair Salons</div>
+      <div style="font-size:11px;letter-spacing:0.2em;color:#a89778;text-transform:uppercase;margin-bottom:28px;">for Nail Salons</div>
 
       <p style="font-size:15px;line-height:1.85;margin:0 0 18px;">${escapeHtml(opts.name)} 様</p>
 
@@ -130,8 +130,8 @@ export function inquiryAckTemplate(opts: {
 
       <div style="font-size:11px;color:#7a857f;line-height:1.8;">
         SalonLink<br />
-        広告に頼らない経営のための、美容室専用の管理ツール<br />
-        <a href="https://salon-link-production.up.railway.app/" style="color:#633f5a;">SalonLink — for Nail Salons</a>
+        広告に頼らない経営のための、ネイルサロン専用の管理ツール<br />
+        <a href="https://salon-link-web-production.up.railway.app/" style="color:#633f5a;">SalonLink — for Nail Salons</a>
       </div>
     </td></tr>
   </table>
@@ -153,7 +153,7 @@ export function inquiryNotifyTemplate(opts: {
 }): { subject: string; html: string } {
   const subject = `[Inquiry] ${opts.salonName || opts.name} 様より`;
   const html = `
-<!doctype html><html><body style="font-family:monospace;background:#fff;padding:24px;">
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>Inquiry</title></head><body style="font-family:monospace;background:#fff;padding:24px;">
 <h2 style="margin:0 0 16px;font-family:sans-serif;color:#14100c;">新規お問合せ</h2>
 <table cellpadding="6" style="font-size:13px;border-collapse:collapse;">
   <tr><td style="color:#7a857f;width:80px;">From</td><td>${escapeHtml(opts.name)}</td></tr>
