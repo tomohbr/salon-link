@@ -14,10 +14,10 @@ export default function TokushohoPage() {
       </p>
 
       <dl className="space-y-0">
-        <Definition term="販売事業者" def="〔事業者名を記載〕" />
-        <Definition term="運営責任者" def="〔代表者氏名を記載〕" />
-        <Definition term="所在地" def={<span>〔所在地を記載〕<br /><span className="text-[11px] text-stone-500">※ 個人事業主の方で住所の公開を希望されない場合、請求があれば遅延なく開示する旨の記載で代替可能 (消費者庁ガイドラインによる)</span></span>} />
-        <Definition term="電話番号" def={<span>〔電話番号を記載〕<br /><span className="text-[11px] text-stone-500">※ 受付時間: 平日 10:00 — 18:00 (土日祝休)</span></span>} />
+        <Definition term="販売事業者" def="芝原 朋弥 (個人事業主)" />
+        <Definition term="運営責任者" def="芝原 朋弥" />
+        <Definition term="所在地" def={<span>請求があれば遅滞なく開示いたします。<br /><span className="text-[11px] text-stone-500">※ 必要な場合は下記メールアドレス宛にご連絡ください。</span></span>} />
+        <Definition term="電話番号" def={<span>請求があれば遅滞なく開示いたします。<br /><span className="text-[11px] text-stone-500">※ お問合せは原則メール (shibahara.724@gmail.com) で受け付けております。受付時間: 平日 10:00 — 18:00</span></span>} />
         <Definition term="メールアドレス" def="shibahara.724@gmail.com" />
         <Definition term="販売価格" def={
           <div className="space-y-1">
@@ -56,8 +56,7 @@ export default function TokushohoPage() {
       </dl>
 
       <div className="mt-12 p-4 bg-stone-50 border border-stone-200 rounded text-[12px] text-stone-600 leading-[1.95]">
-        ※ 上記「〔〕」内の項目は、事業者情報の確認が完了次第、随時更新いたします。<br />
-        本表記に記載のない事項については、利用規約・プライバシーポリシーに従います。
+        本表記に記載のない事項については、<a href="/legal/terms" className="underline underline-offset-2" style={{ color: '#633f5a' }}>利用規約</a>・<a href="/legal/privacy" className="underline underline-offset-2" style={{ color: '#633f5a' }}>プライバシーポリシー</a>に従います。
       </div>
     </>
   );
