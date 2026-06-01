@@ -999,8 +999,13 @@ function Footer() {
             <Link href="/login" className="hover:opacity-60">ログイン</Link>
           </nav>
         </div>
-        <div className="mt-8 pt-8 text-center text-xs" style={{ borderTop: '1px solid var(--gray-200)', color: 'var(--gray-500)' }}>
-          © 2026 SalonLink. Made for individual nail salons with care.
+        <div className="mt-8 pt-8 flex flex-col md:flex-row items-center justify-between gap-3 text-xs" style={{ borderTop: '1px solid var(--gray-200)', color: 'var(--gray-500)' }}>
+          <div>© 2026 SalonLink. Made for individual nail salons with care.</div>
+          <div className="flex gap-4">
+            <Link href="/legal/terms" className="hover:opacity-60">利用規約</Link>
+            <Link href="/legal/privacy" className="hover:opacity-60">プライバシーポリシー</Link>
+            <Link href="/legal/tokushoho" className="hover:opacity-60">特商法表記</Link>
+          </div>
         </div>
       </div>
     </footer>
