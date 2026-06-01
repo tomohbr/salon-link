@@ -12,6 +12,7 @@ import RoiCalculator from './_lp/RoiCalculator';
 import StickyMobileCta from './_lp/StickyMobileCta';
 import Reveal from './_lp/Reveal';
 import CountUp from './_lp/CountUp';
+import InquiryForm from './_lp/InquiryForm';
 
 export const metadata = {
   title: 'SalonLink — 個人ネイルサロンのための、自社集客サービス',
@@ -155,10 +156,11 @@ function Hero() {
             >
               無料ではじめる
             </Link>
+            <InquiryForm source="hero" variant="outline" />
             <Link
               href="#tour"
-              className="px-8 py-4 text-xs tracking-[0.2em] font-bold text-center transition-all hover:bg-gray-900 hover:text-white"
-              style={{ color: 'var(--gray-900)', border: '1px solid var(--gray-900)', borderRadius: 'var(--r-md)' }}
+              className="px-8 py-4 text-xs tracking-[0.2em] font-bold text-center transition-all hover:opacity-60"
+              style={{ color: 'var(--gray-500)' }}
             >
               デモを見る <ChevronRight className="inline w-3 h-3" />
             </Link>
@@ -964,13 +966,16 @@ function FinalCta() {
         <p className="text-sm leading-[2.1] mb-10 text-white/85">
           30分で、最初のお客さまを登録できます。<br />クレジットカード不要、いつでも解約可能です。
         </p>
-        <Link
-          href="/register"
-          className="inline-block px-12 py-4 text-xs tracking-[0.2em] font-bold transition-transform hover:-translate-y-0.5"
-          style={{ background: 'white', color: 'var(--gray-900)', borderRadius: 'var(--r-md)' }}
-        >
-          無料ではじめる
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+          <Link
+            href="/register"
+            className="inline-block px-12 py-4 text-xs tracking-[0.2em] font-bold transition-transform hover:-translate-y-0.5"
+            style={{ background: 'white', color: 'var(--gray-900)', borderRadius: 'var(--r-md)' }}
+          >
+            無料ではじめる
+          </Link>
+          <InquiryForm source="final-cta" variant="outline" className="!text-white !border-white/40 hover:!bg-white/10" />
+        </div>
       </Reveal>
     </section>
   );
