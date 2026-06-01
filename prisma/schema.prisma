@@ -303,3 +303,18 @@ model AuditLog {
   @@index([userId, createdAt])
   @@index([action])
 }
+
+// アプリ内フィードバック（オーナー/スタッフからの改善要望・不具合報告）
+model Feedback {
+  id        String   @id @default(cuid())
+  salonId   String?
+  salonName String?
+  userName  String?
+  message   String
+  page      String?
+  status    String   @default("new") // new | read
+  createdAt DateTime @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+}

@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth';
 import { yen, fmtDate } from '@/lib/utils/format';
-import { Sparkles, Building2, Users, TrendingUp } from 'lucide-react';
+import { Sparkles, Building2, Users, TrendingUp, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import SuperAdminClient from './SuperAdminClient';
@@ -20,6 +20,11 @@ export default async function SuperAdminPage() {
         select: { customers: true, reservations: true, users: true },
       },
     },
+  });
+
+  const feedback = await prisma.feedback.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 100,
   });
 
   const totalSalons = salons.length;
@@ -103,6 +108,39 @@ export default async function SuperAdminPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* アプリ内フィードバック */}
+        <div className="card-box">
+          <h2 className="font-semibold text-stone-900 mb-1 flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-stone-400" />
+            フィードバック
+            {feedback.length > 0 && (
+              <span className="badge badge-brand">{feedback.length}</span>
+            )}
+          </h2>
+          <p className="text-xs text-stone-500 mb-4">
+            オーナー・スタッフがアプリ内から送ったご意見・ご要望・不具合報告。
+          </p>
+          {feedback.length === 0 ? (
+            <p className="text-sm text-stone-500 py-6 text-center">
+              まだフィードバックはありません。
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {feedback.map((f) => (
+                <li key={f.id} className="border border-stone-200 rounded-lg p-3">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-stone-500 mb-1.5">
+                    <span className="font-medium text-stone-700">{f.salonName || '（店舗不明）'}</span>
+                    {f.userName && <span>· {f.userName}</span>}
+                    {f.page && <span className="badge badge-gray">{f.page}</span>}
+                    <span className="ml-auto">{fmtDate(f.createdAt)}</span>
+                  </div>
+                  <p className="text-sm text-stone-800 whitespace-pre-wrap break-words">{f.message}</p>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </main>
     </div>
