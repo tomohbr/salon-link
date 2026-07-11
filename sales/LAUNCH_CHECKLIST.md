@@ -18,7 +18,7 @@
 | HSL | `/legal/privacy` | 200 | プライバシーポリシー |
 | HSL | `/legal/tokushoho` | 200 | 特商法表記 |
 | HSL | `/book/hair-salon-demo` | 200 | サンプル予約 |
-| HSL | `/book/salon-ad76iza2-q47p` | 200 | marici 予約 |
+| HSL | `/book/<導入店舗slug>` | 200 | 導入店舗の予約ページ（実slugは非公開管理） |
 | HSL | `/api/inquiry` (POST) | 200 / 400 / 429 | 正常、レート制限あり |
 | HSL | `/robots.txt` | 200 | |
 | HSL | `/sitemap.xml` | 200 | |

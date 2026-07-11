@@ -1,10 +1,19 @@
 // Prisma seed: SuperAdmin + デモサロン + 100ペルソナ
-// 実行: npx tsx prisma/seed.ts
+// 実行: SEED_DEMO=1 npx tsx prisma/seed.ts
 // Idempotent: 既存データがあればスキップ
+//
+// ⚠️ セキュリティガード: このseedは固定パスワードのデモアカウントを作成する。
+// 本番DBへの誤投入を防ぐため、環境変数 SEED_DEMO=1 が明示されていない限り何もしない。
+// 本番の起動コマンド（railway.json / nixpacks.toml）からは呼び出さないこと。
 
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { generatePersonas } from '../src/seed/personas';
+
+if (process.env.SEED_DEMO !== '1') {
+  console.log('⏭  Seed skipped: SEED_DEMO=1 が設定されていません（デモデータ投入はローカル/検証環境のみ）。');
+  process.exit(0);
+}
 
 const prisma = new PrismaClient();
 

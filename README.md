@@ -73,14 +73,19 @@
    ```
 
 5. **デプロイ**
-   - Railway が自動で `npm run build` → `prisma db push` → `seed.ts` → `npm start` を実行
-   - 初回のみ SuperAdmin・デモサロン・100ペルソナが自動投入される
+   - Railway が自動で `npm run build` → `prisma migrate deploy` → `npm start` を実行
+   - **本番ではデモデータのseedは実行されない**（固定パスワードのデモアカウントが本番に作られるのを防ぐため）
+   - ローカル/検証環境でデモデータを入れる場合のみ: `SEED_DEMO=1 npx tsx prisma/seed.ts`
+   - 既存DB（`prisma db push` で構築済み）に初めて `migrate deploy` を流す場合は、一度だけベースライン登録が必要:
+     `npx prisma migrate resolve --applied 0_init`
 
 6. **ドメイン生成**
    - Settings → Networking → "Generate Domain" をクリック
    - `https://<your-app>.up.railway.app` が払い出される
 
-### 初期ログイン情報（seed 実行後）
+### 初期ログイン情報（ローカルで `SEED_DEMO=1` seed 実行後のみ）
+
+> ⚠️ 以下はローカル/検証環境専用のデモアカウント。本番環境には存在させないこと。
 
 | ロール | メール | パスワード | 画面 |
 |---|---|---|---|
